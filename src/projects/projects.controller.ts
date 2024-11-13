@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -18,12 +19,12 @@ export class ProjectsController {
 
   @Post()
   create(@Body() createProjectDto: CreateProjectDto) {
-    const userId = '5f2d381a-1b5c-4bca-b49c-91d4074b050a';
+    const userId = 'cffa43b6-a623-489e-86db-7f049f64aed2';
     return this.projectsService.create(createProjectDto, userId);
   }
 
   @Get()
-  findAll() {
+  findAll(@Req() request: Request) {
     return this.projectsService.findAll();
   }
 
@@ -34,11 +35,10 @@ export class ProjectsController {
   @Get(':id/flags')
   findFlags(
     @Param('id') id: string,
-    @Query('s') search: string = '',
-    @Query('r') pageSize: number = 10,
-    @Query('p') pageNumber: number = 1,
+    @Query('search') search: string = '',
+    @Query('limit') pageSize: number = 10,
+    @Query('page') pageNumber: number = 1,
   ) {
-    console.log(search, pageSize, pageNumber);
     return this.projectsService.findFlags(id, search, pageSize, pageNumber);
   }
 

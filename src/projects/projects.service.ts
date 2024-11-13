@@ -15,7 +15,7 @@ export class ProjectsService {
      * Return the created project.
      */
 
-   const { name, description } = createProjectDto;
+    const { name, description } = createProjectDto;
 
     const newRows = await db.transaction(async (tx) => {
       const newProject = await tx
@@ -69,11 +69,10 @@ export class ProjectsService {
       .offset(Number(offset));
 
     const result = await combinedQuery.execute();
-    const total = result.length > 0 ? Number(result[0].total) : 0;
-    const totalPages = Math.ceil(total / pageSize);
+    const totalRecords = result.length > 0 ? Number(result[0].total) : 0;
     const flagsList = result.map(({ total, ...rest }) => rest);
     return {
-      totalPages,
+      totalRecords,
       flagsList,
     };
   }
