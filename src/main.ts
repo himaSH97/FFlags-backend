@@ -22,7 +22,6 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors(corsOptions);
-  app.use(clerkMiddleware());
 
   // Set global prefix
   app.setGlobalPrefix('api');
@@ -32,6 +31,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  app.use(clerkMiddleware());
 
   const config = new DocumentBuilder()
     .setTitle('FFlags')
