@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
 import { db } from 'src/db';
 import {
   projects,
@@ -133,6 +134,35 @@ export class ProjectsService {
       .where(eq(projectRoles.projectId, projectId))
       .execute();
     return projectRolesList;
+  }
+
+  async createProjectRole(
+    projectId: string,
+    createProjectRoleDto: CreateRoleDto,
+  ) {
+    const { projectRole, description } = createProjectRoleDto;
+
+    const newRows = await db.transaction(async (tx) => {
+      const newProjectRole = await tx
+        .insert(projectRoles)
+        .values({ projectId: projectId, projectRole, description })
+        .returning()
+        .execute();
+
+      return { projectRole: newProjectRole[0] };
+    });
+
+    return newRows;
+  }
+
+  async removeProjectRole(roleId: string) {
+    const deletedRow = await db
+      .delete(projectRoles)
+      .where(eq(projectRoles.id, roleId))
+      .returning()
+      .execute();
+
+    return deletedRow;
   }
 
   findOne(projectId: string) {
