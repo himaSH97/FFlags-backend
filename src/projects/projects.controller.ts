@@ -12,6 +12,7 @@ import {
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -67,7 +68,7 @@ export class ProjectsController {
   @Post(':id/roles')
   createProjectRole(
     @Param('id') id: string,
-    @Body() createProjectRoleDto: any,
+    @Body() createProjectRoleDto: CreateRoleDto,
   ) {
     return this.projectsService.createProjectRole(id, createProjectRoleDto);
   }
