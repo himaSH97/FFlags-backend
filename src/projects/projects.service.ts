@@ -135,8 +135,8 @@ export class ProjectsService {
     return projectRolesList;
   }
 
-  async createProjectRoles(projectId: string, createProjectRolesDto: any) {
-    const { projectRole, description } = createProjectRolesDto;
+  async createProjectRole(projectId: string, createProjectRoleDto: any) {
+    const { projectRole, description } = createProjectRoleDto;
 
     const newRows = await db.transaction(async (tx) => {
       const newProjectRole = await tx
@@ -149,6 +149,16 @@ export class ProjectsService {
     });
 
     return newRows;
+  }
+
+  async removeProjectRole(id: string, roleId: string) {
+    const deletedRow = await db
+      .delete(projectRoles)
+      .where(and(eq(projectRoles.id, roleId), eq(projectRoles.projectId, id)))
+      // .where(eq(projectRoles.id, roleId))
+      .returning();
+
+    return `Role deleted`;
   }
 
   findOne(projectId: string) {

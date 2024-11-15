@@ -65,7 +65,15 @@ export class ProjectsController {
   }
 
   @Post(':id/roles')
-  createProjectRoles(@Param('id') id: string, @Body() createProjectRolesDto: any) {
-    return this.projectsService.createProjectRoles(id, createProjectRolesDto);
+  createProjectRole(
+    @Param('id') id: string,
+    @Body() createProjectRoleDto: any,
+  ) {
+    return this.projectsService.createProjectRole(id, createProjectRoleDto);
+  }
+
+  @Delete(':id/roles/:roleId')
+  removeProjectRole(@Param('id') id: string, @Param('roleId') roleId: string) {
+    return this.projectsService.removeProjectRole(id, roleId);
   }
 }
