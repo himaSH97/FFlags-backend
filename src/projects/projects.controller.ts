@@ -73,7 +73,7 @@ export class ProjectsController {
   }
 
   @Delete(':id/roles/:roleId')
-  removeProjectRole(@Param('id') id: string, @Param('roleId') roleId: string) {
-    return this.projectsService.removeProjectRole(id, roleId);
+  removeProjectRole(@Param('roleId') roleId: string) {
+    return this.projectsService.removeProjectRole(roleId);
   }
 }
