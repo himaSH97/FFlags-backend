@@ -2,9 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { db } from 'src/db';
-import { projects, featureFlags, users, projectRoles } from 'src/db/schema';
-import { and, count, eq, ilike, like, sql } from 'drizzle-orm';
+import {
+  projects,
+  featureFlags,
+  users,
+  projectRoles,
+  featureFlagValues,
+} from 'src/db/schema';
+import { and, count, eq, ilike, is, like, sql } from 'drizzle-orm';
 import { Doc } from 'src/db/types';
+import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 
 @Injectable()
 export class ProjectsService {
@@ -25,7 +32,10 @@ export class ProjectsService {
         .execute();
       const newRole = await tx
         .insert(projectRoles)
-        .values({ projectId: newProject[0].id, projectRole: 'DEFAULT' })
+        .values({
+          projectId: newProject[0].id,
+          projectRole: DEAFULT_PROJECT_ROLE,
+        })
         .returning()
         .execute();
 
@@ -58,7 +68,7 @@ export class ProjectsService {
         id: featureFlags.id,
         projectId: featureFlags.projectId,
         name: featureFlags.name,
-        value: featureFlags.value,
+        isAdvanced: featureFlags.isAdvanced,
         description: featureFlags.description,
         createdAt: featureFlags.createdAt,
         updatedAt: featureFlags.updatedAt,
@@ -75,6 +85,54 @@ export class ProjectsService {
       totalRecords,
       flagsList,
     };
+  }
+
+  async createFlags(projectId: string, createFeatureFlagDto: any) {
+    const { name, description, isAdvanced } = createFeatureFlagDto;
+    const newRows = await db.transaction(async (tx) => {
+      const newFlag = await tx
+        .insert(featureFlags)
+        .values({ projectId, name, description, isAdvanced })
+        .returning()
+        .execute();
+
+      const projectRolesList = await tx
+        .select()
+        .from(projectRoles)
+        .where(eq(projectRoles.projectId, projectId))
+        .execute();
+
+      let flagValues = projectRolesList.map((role) => ({
+        flagId: newFlag[0].id,
+        value: false, // Set the value as needed
+        roleId: role.id,
+        projectRole: role.projectRole,
+      }));
+
+      if (!isAdvanced) {
+        flagValues = flagValues.filter(
+          (role) => role.projectRole === DEAFULT_PROJECT_ROLE,
+        );
+      }
+
+      const flagValue = await tx
+        .insert(featureFlagValues)
+        .values(flagValues)
+        .returning()
+        .execute();
+      console.log('🚀 ~ ProjectsService ~ newRows ~ flagValue:', flagValue);
+      return { flag: newFlag[0], flagValue };
+    });
+    return newRows;
+  }
+
+  async getProjectRoles(projectId: string) {
+    const projectRolesList = await db
+      .select()
+      .from(projectRoles)
+      .where(eq(projectRoles.projectId, projectId))
+      .execute();
+    return projectRolesList;
   }
 
   findOne(projectId: string) {

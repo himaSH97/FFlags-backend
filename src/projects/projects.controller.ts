@@ -17,9 +17,9 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post()
+  @Post() //    /projects
   create(@Body() createProjectDto: CreateProjectDto) {
-    const userId = 'cffa43b6-a623-489e-86db-7f049f64aed2';
+    const userId = '5f2d381a-1b5c-4bca-b49c-91d4074b050a';
     return this.projectsService.create(createProjectDto, userId);
   }
 
@@ -32,6 +32,7 @@ export class ProjectsController {
   findOne(@Param('id') id: string) {
     return this.projectsService.findOne(id);
   }
+
   @Get(':id/flags')
   findFlags(
     @Param('id') id: string,
@@ -42,6 +43,12 @@ export class ProjectsController {
     return this.projectsService.findFlags(id, search, pageSize, pageNumber);
   }
 
+  @Post(':id/flags')
+  createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any) {
+    console.log('hit');
+    return this.projectsService.createFlags(id, createFeatureFlagDto);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(id, updateProjectDto);
@@ -50,5 +57,10 @@ export class ProjectsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.projectsService.remove(+id);
+  }
+
+  @Get(':id/roles')
+  getProjectRoles(@Param('id') id: string) {
+    return this.projectsService.getProjectRoles(id);
   }
 }

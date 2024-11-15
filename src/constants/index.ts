@@ -1,0 +1,1 @@
+export const DEAFULT_PROJECT_ROLE = 'DEFAULT';

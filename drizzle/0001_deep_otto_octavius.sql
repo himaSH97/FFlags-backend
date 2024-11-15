@@ -1,0 +1,1 @@
+ALTER TABLE "feature_flags" RENAME COLUMN "value" TO "is_advanced";
