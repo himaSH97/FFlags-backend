@@ -20,6 +20,7 @@ export class ProjectsService {
      * Create a new Project in the database.
      * Add a new Default Role for the Project.
      * Return the created project.
+     *
      */
 
     const { name, description } = createProjectDto;
@@ -120,7 +121,6 @@ export class ProjectsService {
         .values(flagValues)
         .returning()
         .execute();
-      console.log('🚀 ~ ProjectsService ~ newRows ~ flagValue:', flagValue);
       return { flag: newFlag[0], flagValue };
     });
     return newRows;
@@ -133,6 +133,23 @@ export class ProjectsService {
       .where(eq(projectRoles.projectId, projectId))
       .execute();
     return projectRolesList;
+  }
+
+  async getFlagInfo(projectId: string, flagId: string) {
+    /**
+     *
+     * Get basic flag information
+     *
+     */
+    const flagInfo = await db
+      .select()
+      .from(featureFlags)
+      .where(
+        and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)),
+      )
+      .execute();
+
+    return flagInfo;
   }
 
   findOne(projectId: string) {

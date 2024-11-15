@@ -22,7 +22,7 @@ export const users = pgTable('users', {
     .default(sql`uuid_generate_v4()`)
     .notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  username: varchar('username', { length: 100 }).notNull().unique(),
+  userId: varchar('user_id', { length: 100 }).notNull().unique(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -123,24 +123,28 @@ export const featureFlags = pgTable('feature_flags', {
 
 // Feature Flag Values table
 
-export const featureFlagValues = pgTable('feature_flag_values', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`uuid_generate_v4()`)
-    .notNull(),
-  flagId: uuid('flag_id')
-    .references(() => featureFlags.id, { onDelete: 'cascade' })
-    .notNull(),
-  roleId: uuid('role_id')
-    .references(() => projectRoles.id, { onDelete: 'cascade' })
-    .notNull(),
-  value: boolean('value').default(false).notNull(),
-  visibilityLevel: integer('visibility_level').default(100).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => sql`NOW()`),
-});
+export const featureFlagValues = pgTable(
+  'feature_flag_values',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuid_generate_v4()`)
+      .notNull(),
+    flagId: uuid('flag_id')
+      .references(() => featureFlags.id, { onDelete: 'cascade' })
+      .notNull(),
+    roleId: uuid('role_id')
+      .references(() => projectRoles.id, { onDelete: 'cascade' })
+      .notNull(),
+    value: boolean('value').default(false).notNull(),
+    visibilityLevel: integer('visibility_level').default(100).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => sql`NOW()`),
+  },
+  (t) => [uniqueIndex('unique_flag_role').on(t.flagId, t.roleId)],
+);
