@@ -9,12 +9,21 @@ import {
   uniqueIndex,
   uuid,
   boolean,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 // Define enums for role and status
 export const roleEnum = pgEnum('role', ['owner', 'contributor', 'viewer']);
 export const statusEnum = pgEnum('status', ['active', 'pending', 'declined']);
-
+export const auditEntityTypeEnum = pgEnum('entity_type', [
+  'feature_flags',
+  'feature_flag_values',
+]);
+export const auditEntityActionEnum = pgEnum('entity_action', [
+  'create',
+  'update',
+  'delete',
+]);
 // Users table
 export const users = pgTable('users', {
   id: uuid('id')
@@ -22,7 +31,7 @@ export const users = pgTable('users', {
     .default(sql`uuid_generate_v4()`)
     .notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  username: varchar('username', { length: 100 }).notNull().unique(),
+  userId: varchar('user_id', { length: 100 }).notNull().unique(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -123,24 +132,45 @@ export const featureFlags = pgTable('feature_flags', {
 
 // Feature Flag Values table
 
-export const featureFlagValues = pgTable('feature_flag_values', {
+export const featureFlagValues = pgTable(
+  'feature_flag_values',
+  {
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`uuid_generate_v4()`)
+      .notNull(),
+    flagId: uuid('flag_id')
+      .references(() => featureFlags.id, { onDelete: 'cascade' })
+      .notNull(),
+    roleId: uuid('role_id')
+      .references(() => projectRoles.id, { onDelete: 'cascade' })
+      .notNull(),
+    value: boolean('value').default(false).notNull(),
+    visibilityLevel: integer('visibility_level').default(100).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => sql`NOW()`),
+  },
+  (t) => [uniqueIndex('unique_flag_role').on(t.flagId, t.roleId)],
+);
+
+export const auditHistory = pgTable('audit_history', {
   id: uuid('id')
     .primaryKey()
     .default(sql`uuid_generate_v4()`)
     .notNull(),
-  flagId: uuid('flag_id')
-    .references(() => featureFlags.id, { onDelete: 'cascade' })
+  entityId: uuid('entity_id').notNull(),
+  entityType: auditEntityTypeEnum('entity_type').notNull(),
+  entityAction: auditEntityActionEnum('entity_action').notNull(),
+  changedFields: jsonb('changed_fields').notNull(),
+  changedBy: uuid('changed_by')
+    .references(() => users.id, { onDelete: 'restrict' })
     .notNull(),
-  roleId: uuid('role_id')
-    .references(() => projectRoles.id, { onDelete: 'cascade' })
-    .notNull(),
-  value: boolean('value').default(false).notNull(),
-  visibilityLevel: integer('visibility_level').default(100).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
+  changedAt: timestamp('changed_at', { withTimezone: true })
     .defaultNow()
     .notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => sql`NOW()`),
 });

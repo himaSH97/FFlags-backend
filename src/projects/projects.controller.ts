@@ -44,6 +44,11 @@ export class ProjectsController {
     return this.projectsService.findFlags(id, search, pageSize, pageNumber);
   }
 
+  @Get(':id/flags/:flagId')
+  getFlag(@Param('id') id: string, @Param('flagId') flagId: string) {
+    return this.projectsService.getFlagInfo(id, flagId);
+  }
+
   @Post(':id/flags')
   createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any) {
     console.log('hit');
