@@ -135,6 +135,22 @@ export class ProjectsService {
     return projectRolesList;
   }
 
+  async createProjectRoles(projectId: string, createProjectRolesDto: any) {
+    const { projectRole, description } = createProjectRolesDto;
+
+    const newRows = await db.transaction(async (tx) => {
+      const newProjectRole = await tx
+        .insert(projectRoles)
+        .values({ projectId: projectId, projectRole, description })
+        .returning()
+        .execute();
+
+      return { projectRole: newProjectRole[0] };
+    });
+
+    return newRows;
+  }
+
   findOne(projectId: string) {
     return `This action returns a #${projectId} project`;
   }

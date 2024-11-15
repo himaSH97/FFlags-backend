@@ -63,4 +63,9 @@ export class ProjectsController {
   getProjectRoles(@Param('id') id: string) {
     return this.projectsService.getProjectRoles(id);
   }
+
+  @Post(':id/roles')
+  createProjectRoles(@Param('id') id: string, @Body() createProjectRolesDto: any) {
+    return this.projectsService.createProjectRoles(id, createProjectRolesDto);
+  }
 }
