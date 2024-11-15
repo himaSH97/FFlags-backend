@@ -12,6 +12,7 @@ import {
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -67,5 +68,18 @@ export class ProjectsController {
   @Get(':id/roles')
   getProjectRoles(@Param('id') id: string) {
     return this.projectsService.getProjectRoles(id);
+  }
+
+  @Post(':id/roles')
+  createProjectRole(
+    @Param('id') id: string,
+    @Body() createProjectRoleDto: CreateRoleDto,
+  ) {
+    return this.projectsService.createProjectRole(id, createProjectRoleDto);
+  }
+
+  @Delete(':id/roles/:roleId')
+  removeProjectRole(@Param('roleId') roleId: string) {
+    return this.projectsService.removeProjectRole(roleId);
   }
 }
