@@ -141,7 +141,6 @@ export class ProjectsService {
     return projectRolesList;
   }
 
-
   async getFlagInfo(projectId: string, flagId: string) {
     /**
      *
@@ -191,6 +190,8 @@ export class ProjectsService {
       featureFlags: flagInfo[0],
       featureFlagValues: flagValues,
     };
+  }
+
   async createProjectRole(
     projectId: string,
     createProjectRoleDto: CreateRoleDto,
@@ -218,7 +219,6 @@ export class ProjectsService {
       .execute();
 
     return deletedRow;
-
   }
 
   findOne(projectId: string) {
