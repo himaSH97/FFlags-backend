@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { ProjectsModule } from './projects/projects.module';
 import { LegacyRequireAuthMiddleware } from './middlewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
-  imports: [ProjectsModule],
+  imports: [ProjectsModule, AuditModule],
   controllers: [AppController],
   providers: [AppService],
 })

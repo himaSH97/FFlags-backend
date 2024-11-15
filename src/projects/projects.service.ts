@@ -13,6 +13,11 @@ import { and, count, eq, ilike, is, like, sql } from 'drizzle-orm';
 import { Doc } from 'src/db/types';
 import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 
+interface FlagInfo {
+  feature_flags: Doc<'featureFlags'>;
+  feature_flag_values: Doc<'featureFlagValues'>[];
+}
+
 @Injectable()
 export class ProjectsService {
   async create(createProjectDto: CreateProjectDto, userId: string) {
@@ -138,7 +143,7 @@ export class ProjectsService {
   async getFlagInfo(projectId: string, flagId: string) {
     /**
      *
-     * Get basic flag information
+     * Get basic feature flag info
      *
      */
     const flagInfo = await db
@@ -149,7 +154,41 @@ export class ProjectsService {
       )
       .execute();
 
-    return flagInfo;
+    /**
+     *
+     * Get basic feature flag values
+     *
+     */
+    const flagValues = await db
+      .select({
+        id: featureFlagValues.id,
+        value: featureFlagValues.value,
+        roleId: featureFlagValues.roleId,
+        projectRoleName: projectRoles.projectRole,
+      })
+      .from(featureFlagValues)
+      .leftJoin(projectRoles, eq(featureFlagValues.roleId, projectRoles.id))
+      .where(eq(featureFlagValues.flagId, flagId))
+      .execute();
+
+    /**
+     * if not advanced return only deafult value
+     */
+    if (!flagInfo[0].isAdvanced) {
+      return {
+        featureFlags: flagInfo[0],
+        featureFlagValues: flagValues.filter(
+          (value) => value.projectRoleName === DEAFULT_PROJECT_ROLE,
+        ),
+      };
+    }
+    /**
+     * if advanced return all values
+     */
+    return {
+      featureFlags: flagInfo[0],
+      featureFlagValues: flagValues,
+    };
   }
 
   findOne(projectId: string) {

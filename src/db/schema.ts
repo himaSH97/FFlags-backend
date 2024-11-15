@@ -9,12 +9,21 @@ import {
   uniqueIndex,
   uuid,
   boolean,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 // Define enums for role and status
 export const roleEnum = pgEnum('role', ['owner', 'contributor', 'viewer']);
 export const statusEnum = pgEnum('status', ['active', 'pending', 'declined']);
-
+export const auditEntityTypeEnum = pgEnum('entity_type', [
+  'feature_flags',
+  'feature_flag_values',
+]);
+export const auditEntityActionEnum = pgEnum('entity_action', [
+  'create',
+  'update',
+  'delete',
+]);
 // Users table
 export const users = pgTable('users', {
   id: uuid('id')
@@ -148,3 +157,20 @@ export const featureFlagValues = pgTable(
   },
   (t) => [uniqueIndex('unique_flag_role').on(t.flagId, t.roleId)],
 );
+
+export const auditHistory = pgTable('audit_history', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuid_generate_v4()`)
+    .notNull(),
+  entityId: uuid('entity_id').notNull(),
+  entityType: auditEntityTypeEnum('entity_type').notNull(),
+  entityAction: auditEntityActionEnum('entity_action').notNull(),
+  changedFields: jsonb('changed_fields').notNull(),
+  changedBy: uuid('changed_by')
+    .references(() => users.id, { onDelete: 'restrict' })
+    .notNull(),
+  changedAt: timestamp('changed_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});

@@ -29,6 +29,13 @@
       "when": 1731671875415,
       "tag": "0003_adding clerk userId",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1731674675073,
+      "tag": "0004_adding audit history table",
+      "breakpoints": true
     }
   ]
 }
