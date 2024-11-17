@@ -166,6 +166,7 @@ export class ProjectsService {
         value: featureFlagValues.value,
         roleId: featureFlagValues.roleId,
         projectRoleName: projectRoles.projectRole,
+        flagId: featureFlagValues.flagId,
       })
       .from(featureFlagValues)
       .leftJoin(projectRoles, eq(featureFlagValues.roleId, projectRoles.id))
