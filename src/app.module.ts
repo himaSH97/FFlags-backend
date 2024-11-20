@@ -5,9 +5,10 @@ import { ProjectsModule } from './projects/projects.module';
 import { LegacyRequireAuthMiddleware } from './middlewares/auth.middleware';
 import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
 import { AuditModule } from './audit/audit.module';
+import { FlagValuesModule } from './flag-values/flag-values.module';
 
 @Module({
-  imports: [ProjectsModule, AuditModule],
+  imports: [ProjectsModule, AuditModule, FlagValuesModule],
   controllers: [AppController],
   providers: [AppService],
 })
