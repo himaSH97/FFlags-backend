@@ -13,15 +13,21 @@ import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { ExpressRequestWithAuth } from '@clerk/express';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post() //    /projects
-  create(@Body() createProjectDto: CreateProjectDto) {
-    const userId = '5f2d381a-1b5c-4bca-b49c-91d4074b050a';
-    return this.projectsService.create(createProjectDto, userId);
+  @Post()
+  create(
+    @Req() request: ExpressRequestWithAuth,
+    @Body() createProjectDto: CreateProjectDto,
+  ) {
+    return this.projectsService.create(
+      createProjectDto,
+      request.auth.userId as string,
+    );
   }
 
   @Get()

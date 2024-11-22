@@ -6,11 +6,15 @@ export interface ChangedFields {
 export function generateChangedFields(
   previousObj: Record<string, any>,
   currentObj: Record<string, any>,
+  omitFields: string[] = [],
 ): ChangedFields {
   const changedFields: ChangedFields = { previous: {}, current: {} };
 
   for (const key in previousObj) {
     if (previousObj.hasOwnProperty(key) && currentObj.hasOwnProperty(key)) {
+      if (omitFields.includes(key)) {
+        continue; // Skip the omitted fields
+      }
       const prevValue = previousObj[key];
       const currValue = currentObj[key];
 

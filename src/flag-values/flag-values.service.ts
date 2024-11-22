@@ -52,7 +52,11 @@ export class FlagValuesService {
       const prev = { ...prevFlagValue[0] };
       const curr = { ...updatedFlagValue[0] };
 
-      const changedFields = generateChangedFields(prev, curr);
+      const changedFields = generateChangedFields(prev, curr, ['updatedAt']);
+      console.log(
+        '🚀 ~ FlagValuesService ~ updatedFlagValue ~ changedFields:',
+        changedFields,
+      );
 
       const auditRec = await tx
         .insert(auditHistory)

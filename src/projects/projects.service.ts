@@ -24,7 +24,7 @@ export class ProjectsService {
   async create(createProjectDto: CreateProjectDto, userId: string) {
     /**
      * Create a new Project in the database.
-     * Add a new Default Role for the Project.
+     * Add a new FF_Default Role for the Project.
      * Return the created project.
      *
      */
@@ -32,9 +32,18 @@ export class ProjectsService {
     const { name, description } = createProjectDto;
 
     const newRows = await db.transaction(async (tx) => {
+      const user = await tx
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.userId, userId))
+        .execute();
       const newProject = await tx
         .insert(projects)
-        .values({ createdBy: userId, name, description })
+        .values({
+          createdBy: user[0].id,
+          name,
+          description,
+        })
         .returning()
         .execute();
       const newRole = await tx

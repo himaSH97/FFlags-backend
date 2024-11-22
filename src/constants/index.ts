@@ -1,1 +1,1 @@
-export const DEAFULT_PROJECT_ROLE = 'DEFAULT';
+export const DEAFULT_PROJECT_ROLE = 'FF_DEFAULT';

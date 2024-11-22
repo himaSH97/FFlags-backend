@@ -11,7 +11,7 @@ import 'dotenv/config';
 export class LegacyRequireAuthMiddleware implements NestMiddleware {
   use(req: ExpressRequestWithAuth, res: Response, next: NextFunction) {
     if (process.env.APP_ENV === 'LOCAL') {
-      req.auth.userId = '5f2d381a-1b5c-4bca-b49c-91d4074b050a';
+      req.auth.userId = process.env.LOCAL_USER_ID as string;
     } else {
       if (!req.auth.userId) {
         return next(new UnauthorizedException());
