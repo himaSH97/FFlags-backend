@@ -35,7 +35,7 @@ export class AuditService {
         metadata: {
           id: users.id,
           email: users.email,
-          userId: users.userId,
+          userId: users.clerkUserId,
           auditRecordId: auditHistory.id,
         },
       })
@@ -51,6 +51,7 @@ export class AuditService {
       .map((result) => result.metadata.userId)
       .filter((userId): userId is string => typeof userId === 'string');
 
+    console.log('🚀 ~ AuditService ~ userIds:', userIds);
     const clerkUsers = await clerkClient.users.getUserList({
       userId: [...userIds],
     });

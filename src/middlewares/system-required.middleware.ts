@@ -20,7 +20,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
     const user = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.userId, req.auth.userId))
+      .where(eq(users.clerkUserId, req.auth.userId))
       .execute();
 
     const systemUserId = user[0].id;

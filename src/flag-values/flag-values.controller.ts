@@ -11,6 +11,7 @@ import {
 import { FlagValuesService } from './flag-values.service';
 import { CreateFlagValueDto } from './dto/create-flag-value.dto';
 import { ExpressRequestWithAuth } from '@clerk/express';
+import { RequestWithAuthSystemInfo } from 'src/types';
 
 @Controller('flag-values')
 export class FlagValuesController {
@@ -25,11 +26,11 @@ export class FlagValuesController {
   updateFlagValue(
     @Param('id') flagValueId: string,
     @Body() updateFlagValueDto: any,
-    @Req() req: ExpressRequestWithAuth,
+    @Req() req: RequestWithAuthSystemInfo,
   ) {
     return this.flagValuesService.updateFlagValue(
       flagValueId,
-      req.auth.userId as string,
+      req.systemInfo.userId as string,
       updateFlagValueDto,
     );
   }

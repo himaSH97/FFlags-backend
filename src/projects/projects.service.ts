@@ -49,6 +49,7 @@ export class ProjectsService {
           userId: userId,
           projectId: newProject[0].id,
           role: 'owner',
+          status: 'active',
         })
         .returning()
         .execute();
@@ -69,6 +70,7 @@ export class ProjectsService {
 
   async findAll(): Promise<Doc<'projects'>[]> {
     const projectsList = await db.select().from(projects).execute();
+    console.log('🚀 ~ ProjectsService ~ findAll ~ projectsList:', projectsList);
     return projectsList;
   }
 

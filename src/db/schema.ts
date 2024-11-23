@@ -31,7 +31,7 @@ export const users = pgTable('users', {
     .default(sql`uuid_generate_v4()`)
     .notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  userId: varchar('user_id', { length: 100 }).notNull().unique(),
+  clerkUserId: varchar('clerk_user_id', { length: 100 }).unique(),
   createdAt: timestamp('created_at', { withTimezone: true })
     .defaultNow()
     .notNull(),

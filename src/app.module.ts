@@ -7,9 +7,10 @@ import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware
 import { AuditModule } from './audit/audit.module';
 import { FlagValuesModule } from './flag-values/flag-values.module';
 import { SystemRequiredMiddleware } from './middlewares/system-required.middleware';
+import { MemberModule } from './member/member.module';
 
 @Module({
-  imports: [ProjectsModule, AuditModule, FlagValuesModule],
+  imports: [ProjectsModule, AuditModule, FlagValuesModule, MemberModule],
   controllers: [AppController],
   providers: [AppService],
 })
