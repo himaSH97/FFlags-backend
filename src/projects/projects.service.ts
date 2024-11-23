@@ -9,6 +9,7 @@ import {
   users,
   projectRoles,
   featureFlagValues,
+  usersOnProjects,
 } from 'src/db/schema';
 import { and, count, eq, ilike, is, like, sql } from 'drizzle-orm';
 import { Doc } from 'src/db/types';
@@ -32,17 +33,22 @@ export class ProjectsService {
     const { name, description } = createProjectDto;
 
     const newRows = await db.transaction(async (tx) => {
-      const user = await tx
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.userId, userId))
-        .execute();
       const newProject = await tx
         .insert(projects)
         .values({
-          createdBy: user[0].id,
+          createdBy: userId,
           name,
           description,
+        })
+        .returning()
+        .execute();
+
+      const userOnProject = await tx
+        .insert(usersOnProjects)
+        .values({
+          userId: userId,
+          projectId: newProject[0].id,
+          role: 'owner',
         })
         .returning()
         .execute();
@@ -229,17 +235,5 @@ export class ProjectsService {
       .execute();
 
     return deletedRow;
-  }
-
-  findOne(projectId: string) {
-    return `This action returns a #${projectId} project`;
-  }
-
-  update(projectId: string, updateProjectDto: UpdateProjectDto) {
-    return `This action upprojectId${projectId} project`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} project`;
   }
 }

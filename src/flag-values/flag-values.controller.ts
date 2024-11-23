@@ -16,39 +16,19 @@ import { ExpressRequestWithAuth } from '@clerk/express';
 export class FlagValuesController {
   constructor(private readonly flagValuesService: FlagValuesService) {}
 
-  @Post()
-  create(@Body() createFlagValueDto: CreateFlagValueDto) {
-    return this.flagValuesService.create(createFlagValueDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.flagValuesService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.flagValuesService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFlagValueDto: any) {
-    return this.flagValuesService.update(+id, updateFlagValueDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.flagValuesService.remove(+id);
-  }
-
+  /**
+   *
+   * Update flag value for a given flag value id
+   *
+   */
   @Patch(':id/value')
   updateFlagValue(
-    @Param('id') id: string,
+    @Param('id') flagValueId: string,
     @Body() updateFlagValueDto: any,
     @Req() req: ExpressRequestWithAuth,
   ) {
     return this.flagValuesService.updateFlagValue(
-      id,
+      flagValueId,
       req.auth.userId as string,
       updateFlagValueDto,
     );

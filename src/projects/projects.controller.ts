@@ -14,31 +14,45 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { ExpressRequestWithAuth } from '@clerk/express';
+import { RequestWithAuthSystemInfo } from 'src/types';
 
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
+  /**
+   *
+   * Create a new project
+   *
+   */
+
   @Post()
   create(
-    @Req() request: ExpressRequestWithAuth,
+    @Req() request: RequestWithAuthSystemInfo,
     @Body() createProjectDto: CreateProjectDto,
   ) {
     return this.projectsService.create(
       createProjectDto,
-      request.auth.userId as string,
+      request.systemInfo.userId,
     );
   }
+
+  /**
+   *
+   * Get all projects
+   *
+   */
 
   @Get()
   findAll(@Req() request: Request) {
     return this.projectsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.projectsService.findOne(id);
-  }
+  /**
+   *
+   * Get Feature flags list for a project
+   *
+   */
 
   @Get(':id/flags')
   findFlags(
@@ -50,10 +64,22 @@ export class ProjectsController {
     return this.projectsService.findFlags(id, search, pageSize, pageNumber);
   }
 
+  /**
+   *
+   * Get Feature flag information for a project and flag id
+   *
+   */
+
   @Get(':id/flags/:flagId')
   getFlag(@Param('id') id: string, @Param('flagId') flagId: string) {
     return this.projectsService.getFlagInfo(id, flagId);
   }
+
+  /**
+   *
+   * Create a feature flag for a project
+   *
+   */
 
   @Post(':id/flags')
   createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any) {
@@ -61,20 +87,22 @@ export class ProjectsController {
     return this.projectsService.createFlags(id, createFeatureFlagDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
-    return this.projectsService.update(id, updateProjectDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(+id);
-  }
+  /**
+   *
+   * Get all defined roles for a project
+   *
+   */
 
   @Get(':id/roles')
   getProjectRoles(@Param('id') id: string) {
     return this.projectsService.getProjectRoles(id);
   }
+
+  /**
+   *
+   * Create a new role for a project
+   *
+   */
 
   @Post(':id/roles')
   createProjectRole(
@@ -83,6 +111,12 @@ export class ProjectsController {
   ) {
     return this.projectsService.createProjectRole(id, createProjectRoleDto);
   }
+
+  /**
+   *
+   * Delete a role for a project
+   *
+   */
 
   @Delete(':id/roles/:roleId')
   removeProjectRole(@Param('roleId') roleId: string) {

@@ -8,31 +8,7 @@ import { generateChangedFields } from 'src/utils';
 
 @Injectable()
 export class FlagValuesService {
-  create(createFlagValueDto: CreateFlagValueDto) {
-    return 'This action adds a new flagValue';
-  }
-
-  findAll() {
-    return `This action returns all flagValues`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} flagValue`;
-  }
-
-  update(id: number, updateFlagValueDto: UpdateFlagValueDto) {
-    return `This action updates a #${id} flagValue`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} flagValue`;
-  }
-
   async updateFlagValue(id: string, userId: string, updateFlagValueDto: any) {
-    console.log(
-      '🚀 ~ FlagValuesService ~ updateFlagValue ~ updateFlagValueDto:',
-      updateFlagValueDto,
-    );
     const updatedFlagValue = await db.transaction(async (tx) => {
       const prevFlagValue = await tx
         .select()
@@ -53,10 +29,6 @@ export class FlagValuesService {
       const curr = { ...updatedFlagValue[0] };
 
       const changedFields = generateChangedFields(prev, curr, ['updatedAt']);
-      console.log(
-        '🚀 ~ FlagValuesService ~ updatedFlagValue ~ changedFields:',
-        changedFields,
-      );
 
       const auditRec = await tx
         .insert(auditHistory)

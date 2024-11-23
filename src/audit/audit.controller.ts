@@ -5,6 +5,12 @@ import { AuditService } from './audit.service';
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
+  /**
+   *
+   * Get audit history for a flag and its all values
+   *
+   */
+
   @Get('flag/:id')
   getAuditHistoryPerFlag(
     @Param('id') flagId: string,
@@ -19,6 +25,12 @@ export class AuditController {
       pageNumber,
     );
   }
+
+  /**
+   *
+   * Get audit history for a flag value
+   *
+   */
 
   @Get('flag-value/:id')
   getAuditHistoryPerFlagValueId(@Param('id') flagValueId: string) {
