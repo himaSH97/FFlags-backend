@@ -13,7 +13,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 // Define enums for role and status
-export const roleEnum = pgEnum('role', ['owner', 'contributor', 'viewer']);
+export const roleEnum = pgEnum('role', ['owner', 'admin', 'viewer']);
 export const statusEnum = pgEnum('status', ['active', 'pending', 'declined']);
 export const auditEntityTypeEnum = pgEnum('entity_type', [
   'feature_flags',

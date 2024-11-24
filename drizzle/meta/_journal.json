@@ -57,6 +57,13 @@
       "when": 1732455700129,
       "tag": "0007_adding clerk id is  null",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1732458461985,
+      "tag": "0008_enum changed to admin",
+      "breakpoints": true
     }
   ]
 }
