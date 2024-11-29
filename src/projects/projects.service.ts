@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { UpdateProjectDto } from './dto/update-project.dto';
-import { CreateRoleDto } from './dto/create-role.dto';
+import { and, eq, ilike, sql } from 'drizzle-orm';
+import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 import { db } from 'src/db';
 import {
-  projects,
   featureFlags,
-  users,
-  projectRoles,
   featureFlagValues,
+  projectKeys,
+  projectRoles,
+  projects,
   usersOnProjects,
 } from 'src/db/schema';
-import { and, count, eq, ilike, is, like, sql } from 'drizzle-orm';
 import { Doc } from 'src/db/types';
-import { DEAFULT_PROJECT_ROLE } from 'src/constants';
+import { CreateProjectDto } from './dto/create-project.dto';
+import { CreateRoleDto } from './dto/create-role.dto';
+import * as forge from 'node-forge';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
@@ -43,6 +43,19 @@ export class ProjectsService {
         .returning()
         .execute();
 
+      const keys = this.generateProjectKeys();
+
+      const newProjectKeys = await tx
+        .insert(projectKeys)
+        .values({
+          projectId: newProject[0].id,
+          serverPublicKey: keys.serverPublicKey,
+          serverPrivateKey: keys.serverPrivateKey,
+          projectPublicKey: keys.projectPublicKey,
+          projectPrivateKey: keys.projectPrivateKey,
+        })
+        .execute();
+
       const userOnProject = await tx
         .insert(usersOnProjects)
         .values({
@@ -70,7 +83,6 @@ export class ProjectsService {
 
   async findAll(): Promise<Doc<'projects'>[]> {
     const projectsList = await db.select().from(projects).execute();
-    console.log('🚀 ~ ProjectsService ~ findAll ~ projectsList:', projectsList);
     return projectsList;
   }
 
@@ -214,12 +226,16 @@ export class ProjectsService {
     projectId: string,
     createProjectRoleDto: CreateRoleDto,
   ) {
-    const { projectRole, description } = createProjectRoleDto;
+    const { name, description } = createProjectRoleDto;
 
     const newRows = await db.transaction(async (tx) => {
       const newProjectRole = await tx
         .insert(projectRoles)
-        .values({ projectId: projectId, projectRole, description })
+        .values({
+          projectId: projectId,
+          projectRole: name.toUpperCase(),
+          description,
+        })
         .returning()
         .execute();
 
@@ -237,5 +253,32 @@ export class ProjectsService {
       .execute();
 
     return deletedRow;
+  }
+
+  generateProjectKeys() {
+    const senderKeypair = forge.pki.rsa.generateKeyPair({
+      bits: 2048,
+      e: 0x10001,
+    });
+    const recipientKeypair = forge.pki.rsa.generateKeyPair({
+      bits: 2048,
+      e: 0x10001,
+    });
+    const serverPublicKey = forge.pki.publicKeyToPem(senderKeypair.publicKey);
+    const serverPrivateKey = forge.pki.privateKeyToPem(
+      senderKeypair.privateKey,
+    );
+    const projectPublicKey = forge.pki.publicKeyToPem(
+      recipientKeypair.publicKey,
+    );
+    const projectPrivateKey = forge.pki.privateKeyToPem(
+      recipientKeypair.privateKey,
+    );
+    return {
+      serverPublicKey,
+      serverPrivateKey,
+      projectPublicKey,
+      projectPrivateKey,
+    };
   }
 }

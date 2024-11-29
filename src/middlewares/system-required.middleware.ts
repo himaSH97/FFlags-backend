@@ -10,6 +10,11 @@ import { eq } from 'drizzle-orm';
 import { db } from 'src/db';
 import { users, usersOnProjects } from 'src/db/schema';
 import { RequestWithAuthSystemInfo } from 'src/types';
+import {
+  FFPermissions,
+  TFFPermissions,
+  TUserPermissions,
+} from 'src/permissions';
 
 @Injectable()
 export class SystemRequiredMiddleware implements NestMiddleware {
@@ -32,16 +37,27 @@ export class SystemRequiredMiddleware implements NestMiddleware {
     const projectList = await db
       .select({
         projectId: usersOnProjects.projectId,
+        role: usersOnProjects.role,
       })
       .from(usersOnProjects)
       .where(eq(usersOnProjects.userId, systemUserId))
       .execute();
 
     const accessAllowed = projectList.map((project) => project.projectId);
+    const systemPermissions: Record<string, TUserPermissions> = {};
+
+    accessAllowed.forEach((projectId) => {
+      const project = projectList.find(
+        (project) => project.projectId === projectId,
+      );
+      if (!project) return;
+      systemPermissions[project.projectId] = FFPermissions[project.role];
+    });
 
     const systemRequired = {
       projects: accessAllowed,
       userId: user[0].id,
+      systemPermissions,
     };
 
     req.systemInfo = systemRequired;

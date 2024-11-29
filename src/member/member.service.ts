@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { usersOnProjects, users } from 'src/db/schema';
+import { usersOnProjects, users, roleEnum } from 'src/db/schema';
 import { db } from 'src/db';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, ilike, sql } from 'drizzle-orm';
 
 @Injectable()
 export class MemberService {
@@ -43,6 +43,7 @@ export class MemberService {
           projectId: projectId,
           status: 'pending',
           invitedBy: InvitedUserId,
+          role: 'viewer',
         })
         .returning()
         .execute();
@@ -71,9 +72,18 @@ export class MemberService {
   async getAllMembersPerProject(
     projectId: string,
     search: string,
+    rolesArray: string[],
     pageSize: number,
     pageNumber: number,
   ) {
+    const offset = (pageNumber - 1) * pageSize;
+    const conditionsArray = [
+      eq(usersOnProjects.projectId, projectId),
+      ilike(users.email, `%${search}%`),
+    ];
+
+    const conditions = and(...conditionsArray);
+
     const membersList = await db
       .select({
         total: sql`COUNT(*) OVER()`,
@@ -84,14 +94,23 @@ export class MemberService {
         invitedBy: usersOnProjects.invitedBy,
         role: usersOnProjects.role,
         status: usersOnProjects.status,
+        platformStatus: users.clerkUserId,
       })
       .from(usersOnProjects)
-      .where(eq(usersOnProjects.projectId, projectId))
+      .innerJoin(users, eq(usersOnProjects.userId, users.id))
+      .where(conditions)
+      .limit(Number(pageSize))
+      .offset(Number(offset))
       .execute();
 
     const totalRecords =
       membersList.length > 0 ? Number(membersList[0].total) : 0;
-    const memberList = membersList.map(({ total, ...rest }) => rest);
+    const memberList = membersList.map(
+      ({ total, platformStatus, ...rest }) => ({
+        ...rest,
+        platformStatus: platformStatus ? 'complete' : 'pending',
+      }),
+    );
 
     return { totalRecords, memberList };
   }

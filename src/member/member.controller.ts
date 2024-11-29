@@ -42,10 +42,13 @@ export class MemberController {
     @Query('search') search: string = '',
     @Query('limit') pageSize: number = 10,
     @Query('page') pageNumber: number = 1,
+    @Query('role') role: string = '',
   ) {
+    const rolesArray = role ? role.split('.') : [];
     return this.memberService.getAllMembersPerProject(
       projectId,
       search,
+      rolesArray,
       pageSize,
       pageNumber,
     );

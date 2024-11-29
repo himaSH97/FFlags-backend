@@ -83,7 +83,6 @@ export class ProjectsController {
 
   @Post(':id/flags')
   createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any) {
-    console.log('hit');
     return this.projectsService.createFlags(id, createFeatureFlagDto);
   }
 
@@ -104,7 +103,7 @@ export class ProjectsController {
    *
    */
 
-  @Post(':id/roles')
+  @Post(':id/role')
   createProjectRole(
     @Param('id') id: string,
     @Body() createProjectRoleDto: CreateRoleDto,

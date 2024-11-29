@@ -61,6 +61,26 @@ export const projects = pgTable('projects', {
     .$onUpdate(() => sql`NOW()`),
 });
 
+//Project Keys table
+
+export const projectKeys = pgTable('project_keys', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuid_generate_v4()`)
+    .notNull(),
+  serverPublicKey: varchar('server_public_key', { length: 2048 }).notNull(),
+  serverPrivateKey: varchar('server_private_key', { length: 2048 }).notNull(),
+  projectPublicKey: varchar('project_public_key', { length: 2048 }).notNull(),
+  projectPrivateKey: varchar('project_private_key', { length: 2048 }).notNull(),
+  projectId: uuid('project_id')
+    .references(() => projects.id, { onDelete: 'cascade' })
+    .unique()
+    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 // Project Roles table
 export const projectRoles = pgTable('project_roles', {
   id: uuid('id')

@@ -64,6 +64,13 @@
       "when": 1732458461985,
       "tag": "0008_enum changed to admin",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1732885302604,
+      "tag": "0009_adding_project_keys",
+      "breakpoints": true
     }
   ]
 }
