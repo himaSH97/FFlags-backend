@@ -1,15 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { usersOnProjects } from 'src/db/schema';
+import { usersOnProjects, users } from 'src/db/schema';
 import { db } from 'src/db';
 import { eq, sql } from 'drizzle-orm';
-import { stat } from 'fs';
 
 @Injectable()
 export class MemberService {
-  create(createMemberDto: CreateMemberDto) {
-    return 'This action adds a new member';
+  async create(
+    createMemberDto: CreateMemberDto,
+    projectId: string,
+    InvitedUserId: string,
+  ) {
+    const { email } = createMemberDto;
+
+    const newRows = await db.transaction(async (tx) => {
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
+
+      let userId;
+
+      if (existingUser.length === 0) {
+        const newUser = await tx
+          .insert(users)
+          .values({
+            email: email,
+          })
+          .returning()
+          .execute();
+
+        userId = newUser[0].id;
+      } else {
+        userId = existingUser[0].id;
+      }
+
+      const userOnProject = await tx
+        .insert(usersOnProjects)
+        .values({
+          userId: userId,
+          projectId: projectId,
+          status: 'pending',
+          invitedBy: InvitedUserId,
+        })
+        .returning()
+        .execute();
+
+      return { userOnProject: userOnProject };
+    });
+    return newRows;
   }
 
   findAll() {

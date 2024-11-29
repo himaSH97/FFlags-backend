@@ -7,18 +7,28 @@ import {
   Param,
   Delete,
   Query,
+  Req,
 } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { RequestWithAuthSystemInfo } from 'src/types';
 
 @Controller('member')
 export class MemberController {
   constructor(private readonly memberService: MemberService) {}
 
-  @Post()
-  create(@Body() createMemberDto: CreateMemberDto) {
-    return this.memberService.create(createMemberDto);
+  @Post(':projectId')
+  create(
+    @Req() request: RequestWithAuthSystemInfo,
+    @Param('projectId') projectId: string,
+    @Body() createMemberDto: CreateMemberDto,
+  ) {
+    return this.memberService.create(
+      createMemberDto,
+      projectId,
+      request.systemInfo.userId,
+    );
   }
 
   @Get()
