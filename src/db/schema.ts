@@ -139,6 +139,7 @@ export const featureFlags = pgTable('feature_flags', {
     .references(() => projects.id, { onDelete: 'cascade' })
     .notNull(),
   name: varchar('name', { length: 150 }).notNull(),
+  flagKey: varchar('flag_key', { length: 150 }).notNull().unique(),
   isAdvanced: boolean('is_advanced').default(false).notNull(),
   description: text('description'),
   createdAt: timestamp('created_at', { withTimezone: true })

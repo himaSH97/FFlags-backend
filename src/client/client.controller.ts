@@ -1,15 +1,7 @@
+import { Body, Controller, Param, Post, Req } from '@nestjs/common';
+import * as forge from 'node-forge';
 import { ClientService, FlagInfoRequest } from './client.service';
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { GetFlagDto } from './dto/get-flag.dto';
 
 @Controller('client')
 export class ClientController {
@@ -35,8 +27,28 @@ export class ClientController {
       signature,
     );
   }
-  @Get('flags')
-  getFlag(@Body() body: FlagInfoRequest) {
-    return this.clientService.getFlagsInfo(body);
+  @Post('flags')
+  getFlagq(@Body() body: GetFlagDto, @Req() req: any) {
+    const projectIdBase64 = req.headers['x-fflags-project-key'];
+
+    if (!projectIdBase64) {
+      throw new Error('Project key is missing');
+    }
+
+    const projectId = forge.util.decode64(projectIdBase64);
+    return this.clientService.getFlagsInfo(projectId, body);
+  }
+
+  @Post('flag')
+  getFlag(@Body() body: GetFlagDto, @Req() req: any) {
+    const projectIdBase64 = req.headers['x-fflags-project-key'];
+
+    if (!projectIdBase64) {
+      throw new Error('Project key is missing');
+    }
+
+    const projectId = forge.util.decode64(projectIdBase64);
+
+    return this.clientService.getFlagInfo(projectId, body);
   }
 }
