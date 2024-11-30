@@ -4,7 +4,9 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { usersOnProjects, users, roleEnum } from 'src/db/schema';
 import { db } from 'src/db';
 import { and, eq, ilike, sql } from 'drizzle-orm';
+import { BadRequestException } from '@nestjs/common';
 
+const maxMembers = 3;
 @Injectable()
 export class MemberService {
   async create(
@@ -15,6 +17,17 @@ export class MemberService {
     const { email } = createMemberDto;
 
     const newRows = await db.transaction(async (tx) => {
+      const memberCount = await db.$count(
+        usersOnProjects,
+        eq(usersOnProjects.projectId, projectId),
+      );
+
+      if (memberCount >= maxMembers) {
+        throw new BadRequestException(
+          `The total number of members cannot exceed ${maxMembers}.`,
+        );
+      }
+
       const existingUser = await db
         .select()
         .from(users)
