@@ -121,4 +121,18 @@ export class ProjectsController {
   removeProjectRole(@Param('roleId') roleId: string) {
     return this.projectsService.removeProjectRole(roleId);
   }
+
+  /**
+   *
+   * Get Proiect keys for a project
+   *
+   */
+
+  @Get(':id/keys')
+  getProjectKeys(
+    @Param('id') id: string,
+    @Req() request: RequestWithAuthSystemInfo,
+  ) {
+    return this.projectsService.getProjectKeys(id);
+  }
 }

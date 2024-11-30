@@ -71,6 +71,13 @@
       "when": 1732885302604,
       "tag": "0009_adding_project_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1732945338242,
+      "tag": "0010_adding flagKey",
+      "breakpoints": true
     }
   ]
 }

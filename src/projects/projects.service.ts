@@ -15,6 +15,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
 import { BadRequestException } from '@nestjs/common';
+import { createKeyFromName } from 'src/utils';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
@@ -133,10 +134,22 @@ export class ProjectsService {
 
   async createFlags(projectId: string, createFeatureFlagDto: any) {
     const { name, description, isAdvanced } = createFeatureFlagDto;
+
+    const flagKey = createKeyFromName(name);
+    const existigFlag = await db
+      .select()
+      .from(featureFlags)
+      .where(eq(featureFlags.flagKey, flagKey))
+      .execute();
+
+    if (existigFlag.length > 0) {
+      throw new Error('Flag with this name already exists');
+    }
+
     const newRows = await db.transaction(async (tx) => {
       const newFlag = await tx
         .insert(featureFlags)
-        .values({ projectId, name, description, isAdvanced })
+        .values({ projectId, name, description, isAdvanced, flagKey: flagKey })
         .returning()
         .execute();
 
@@ -288,5 +301,35 @@ export class ProjectsService {
       projectPublicKey,
       projectPrivateKey,
     };
+  }
+
+  async getProjectKeys(projectId: string) {
+    const keys = await db
+      .select()
+      .from(projectKeys)
+      .where(eq(projectKeys.projectId, projectId))
+      .execute();
+
+    if (keys.length === 0) {
+      throw new Error('No keys found for the given projectId');
+    }
+
+    return [
+      {
+        id: 1,
+        value: forge.util.encode64(keys[0].serverPublicKey),
+        name: 'Public Key',
+      },
+      {
+        id: 2,
+        value: forge.util.encode64(keys[0].projectPrivateKey),
+        name: 'Secret Key',
+      },
+      {
+        id: 3,
+        value: forge.util.encode64(keys[0].projectId),
+        name: 'Project Key',
+      },
+    ];
   }
 }

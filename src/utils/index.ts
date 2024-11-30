@@ -42,3 +42,10 @@ function isDate(value: any): boolean {
     (typeof value === 'string' && !isNaN(Date.parse(value)))
   );
 }
+
+export function createKeyFromName(input: string): string {
+  return input
+    .split(' ')
+    .map((word) => word.toUpperCase())
+    .join('_');
+}
