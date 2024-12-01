@@ -6,7 +6,7 @@ import { db } from 'src/db';
 import { and, eq, ilike, sql } from 'drizzle-orm';
 import { BadRequestException } from '@nestjs/common';
 
-const maxMembers = 3;
+const maxMembers = 10;
 @Injectable()
 export class MemberService {
   async create(
