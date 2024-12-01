@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { db } from 'src/db';
-import { auditHistory, featureFlagValues, users } from 'src/db/schema';
+import {
+  auditHistory,
+  featureFlagValues,
+  projectRoles,
+  users,
+} from 'src/db/schema';
 import { eq, inArray, desc } from 'drizzle-orm';
 import { User, clerkClient } from '@clerk/express';
 import { getUserFields } from 'src/utils/clerk.utils';
@@ -37,10 +42,16 @@ export class AuditService {
           email: users.email,
           userId: users.clerkUserId,
           auditRecordId: auditHistory.id,
+          roleName: projectRoles.projectRole,
         },
       })
       .from(auditHistory)
       .leftJoin(users, eq(auditHistory.changedBy, users.id))
+      .leftJoin(
+        featureFlagValues,
+        eq(auditHistory.entityId, featureFlagValues.id),
+      )
+      .leftJoin(projectRoles, eq(featureFlagValues.roleId, projectRoles.id))
       .where(inArray(auditHistory.entityId, flagValueIdList))
       .orderBy(desc(auditHistory.changedAt))
       .offset(offset)
@@ -51,7 +62,6 @@ export class AuditService {
       .map((result) => result.metadata.userId)
       .filter((userId): userId is string => typeof userId === 'string');
 
-    console.log('🚀 ~ AuditService ~ userIds:', userIds);
     const clerkUsers = await clerkClient.users.getUserList({
       userId: [...userIds],
     });
