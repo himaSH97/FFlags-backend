@@ -47,4 +47,16 @@ export class FlagValuesService {
     });
     return updatedFlagValue;
   }
+
+  async createFlagValue(id: string, userId: string, createFlagValueDto: any) {
+    const newFlag = await db
+      .insert(featureFlagValues)
+      .values({
+        flagId: id,
+        roleId: createFlagValueDto.role,
+      })
+      .returning()
+      .execute();
+    return newFlag;
+  }
 }
