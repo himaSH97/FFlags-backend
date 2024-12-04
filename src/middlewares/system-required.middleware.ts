@@ -23,15 +23,16 @@ export class SystemRequiredMiddleware implements NestMiddleware {
       return next(new UnauthorizedException());
     }
     const user = await db
-      .select({ id: users.id })
+      .select({ id: users.id, clerkUserId: users.clerkUserId })
       .from(users)
       .where(eq(users.clerkUserId, req.auth.userId))
       .execute();
 
     const systemUserId = user[0].id;
+    const systemUserClerkId = user[0].clerkUserId;
 
-    if (!systemUserId) {
-      return next(new UnauthorizedException('System User not found'));
+    if (!systemUserId && !systemUserClerkId) {
+      return next(new UnauthorizedException('Valid system User not found'));
     }
 
     const projectList = await db
@@ -57,6 +58,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
     const systemRequired = {
       projects: accessAllowed,
       userId: user[0].id,
+      clerkUserId: user[0].clerkUserId,
       systemPermissions,
     };
 

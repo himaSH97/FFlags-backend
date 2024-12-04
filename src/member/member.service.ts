@@ -95,6 +95,7 @@ export class MemberService {
         role: usersOnProjects.role,
         status: usersOnProjects.status,
         platformStatus: users.clerkUserId,
+        email: users.email,
       })
       .from(usersOnProjects)
       .innerJoin(users, eq(usersOnProjects.userId, users.id))

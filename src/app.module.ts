@@ -9,6 +9,7 @@ import { FlagValuesModule } from './flag-values/flag-values.module';
 import { SystemRequiredMiddleware } from './middlewares/system-required.middleware';
 import { MemberModule } from './member/member.module';
 import { ClientModule } from './client/client.module';
+import { InviteModule } from './invite/invite.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ClientModule } from './client/client.module';
     FlagValuesModule,
     MemberModule,
     ClientModule,
+    InviteModule,
   ],
   controllers: [AppController],
   providers: [AppService],
