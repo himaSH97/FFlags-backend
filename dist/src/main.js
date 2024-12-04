@@ -15,7 +15,6 @@ async function bootstrap() {
         allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
     };
     app.enableCors(corsOptions);
-    app.setGlobalPrefix('api');
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
     }));
@@ -27,7 +26,7 @@ async function bootstrap() {
         .build();
     const documentFactory = () => swagger_1.SwaggerModule.createDocument(app, config);
     swagger_1.SwaggerModule.setup('api/docs', app, documentFactory);
-    await app.listen({ port: 4000 });
+    await app.listen(3000);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map
