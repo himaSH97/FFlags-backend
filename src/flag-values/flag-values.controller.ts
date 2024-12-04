@@ -34,4 +34,22 @@ export class FlagValuesController {
       updateFlagValueDto,
     );
   }
+
+  /**
+   *
+   * Add a new flag for the flag value
+   *
+   */
+  @Post(':id/value')
+  addFlagValue(
+    @Param('id') flagValueId: string,
+    @Body() createFlagValueDto: any,
+    @Req() req: RequestWithAuthSystemInfo,
+  ) {
+    return this.flagValuesService.createFlagValue(
+      flagValueId,
+      req.systemInfo.userId as string,
+      createFlagValueDto,
+    );
+  }
 }
