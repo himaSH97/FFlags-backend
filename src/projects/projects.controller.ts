@@ -82,8 +82,16 @@ export class ProjectsController {
    */
 
   @Post(':id/flags')
-  createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any) {
-    return this.projectsService.createFlags(id, createFeatureFlagDto);
+  createFlags(
+    @Param('id') id: string,
+    @Body() createFeatureFlagDto: any,
+    @Req() request: RequestWithAuthSystemInfo,
+  ) {
+    return this.projectsService.createFlags(
+      id,
+      createFeatureFlagDto,
+      request.systemInfo.userId,
+    );
   }
 
   /**

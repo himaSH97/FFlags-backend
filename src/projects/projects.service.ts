@@ -3,6 +3,8 @@ import { and, eq, ilike, sql } from 'drizzle-orm';
 import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 import { db } from 'src/db';
 import {
+  auditEntityTypeEnum,
+  auditHistory,
   featureFlags,
   featureFlagValues,
   projectKeys,
@@ -15,6 +17,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
 import { createKeyFromName } from 'src/utils';
+import { audit } from 'rxjs';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
@@ -124,7 +127,11 @@ export class ProjectsService {
     };
   }
 
-  async createFlags(projectId: string, createFeatureFlagDto: any) {
+  async createFlags(
+    projectId: string,
+    createFeatureFlagDto: any,
+    userId: string,
+  ) {
     const { name, description, isAdvanced } = createFeatureFlagDto;
 
     const flagKey = createKeyFromName(name);
@@ -153,7 +160,7 @@ export class ProjectsService {
 
       let flagValues = projectRolesList.map((role) => ({
         flagId: newFlag[0].id,
-        value: false, // Set the value as needed
+        value: false,
         roleId: role.id,
         projectRole: role.projectRole,
       }));
@@ -169,6 +176,52 @@ export class ProjectsService {
         .values(flagValues)
         .returning()
         .execute();
+      /**
+       *
+       * Audit History for the flag and its values
+       *
+       */
+      const auditRecords = flagValue.map(
+        (value) =>
+          ({
+            entityId: value.id,
+            entityType: 'feature_flag_values',
+            entityAction: 'create',
+            changedBy: userId,
+            changedAt: value.createdAt,
+            changedFields: {
+              previous: {
+                value: null,
+              },
+              current: {
+                value: value.value,
+              },
+            },
+          }) as Omit<Doc<'auditHistory'>, 'id'>,
+      );
+      await tx.insert(auditHistory).values(auditRecords).execute();
+
+      await tx
+        .insert(auditHistory)
+        .values({
+          entityId: newFlag[0].id,
+          entityType: 'feature_flags',
+          entityAction: 'create',
+          changedBy: userId,
+          changedAt: newFlag[0].createdAt,
+          changedFields: {
+            previous: {
+              name: null,
+              description: null,
+            },
+            current: {
+              name: newFlag[0].name,
+              description: newFlag[0].description,
+            },
+          },
+        })
+        .execute();
+
       return { flag: newFlag[0], flagValue };
     });
     return newRows;
