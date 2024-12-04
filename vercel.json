@@ -1,0 +1,27 @@
+{
+    "version": 2,
+    "env": {
+        "DATABASE_URL": "@DATABASE_URL",
+        "CLERK_PUBLISHABLE_KEY": "@CLERK_PUBLISHABLE_KEY",
+        "CLERK_SECRET_KEY": "@CLERK_SECRET_KEY",
+        "APP_ENV": "@APP_ENV"
+    },
+    "builds": [
+        {
+            "src": "src/main.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "src/main.ts",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE"
+            ]
+        }
+    ]
+}
