@@ -22,6 +22,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
     if (!req.auth.userId) {
       return next(new UnauthorizedException());
     }
+    console.log('req.auth.userId', req.auth.userId);
     const user = await db
       .select({ id: users.id, clerkUserId: users.clerkUserId })
       .from(users)
