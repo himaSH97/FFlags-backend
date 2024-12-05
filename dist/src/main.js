@@ -9,12 +9,13 @@ const platform_express_1 = require("@nestjs/platform-express");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_express_1.ExpressAdapter());
     const corsOptions = {
-        origin: 'http://localhost:3000',
+        origin: 'https://f-flags-dashboard.vercel.app',
         credentials: true,
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
         allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
     };
     app.enableCors(corsOptions);
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
     }));

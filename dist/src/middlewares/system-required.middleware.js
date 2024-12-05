@@ -18,6 +18,7 @@ let SystemRequiredMiddleware = class SystemRequiredMiddleware {
         if (!req.auth.userId) {
             return next(new common_1.UnauthorizedException());
         }
+        console.log('req.auth.userId', req.auth.userId);
         const user = await db_1.db
             .select({ id: schema_1.users.id, clerkUserId: schema_1.users.clerkUserId })
             .from(schema_1.users)

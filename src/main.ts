@@ -20,6 +20,7 @@ async function bootstrap() {
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
+    exposedHeaders: ['set-cookie'],
   };
 
   // Enable CORS

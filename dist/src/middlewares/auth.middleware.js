@@ -11,14 +11,17 @@ const common_1 = require("@nestjs/common");
 require("dotenv/config");
 let LegacyRequireAuthMiddleware = class LegacyRequireAuthMiddleware {
     use(req, res, next) {
+        console.error('req.auth cookie', req.headers.cookie);
         if (process.env.APP_ENV === 'LOCAL') {
             req.auth.userId = process.env.LOCAL_USER_ID;
         }
         else {
             if (!req.auth.userId) {
+                console.error('Auth', req.auth);
                 return next(new common_1.UnauthorizedException());
             }
         }
+        console.log('req.auth.userId', req.auth.userId);
         next();
     }
 };
