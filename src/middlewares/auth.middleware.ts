@@ -14,7 +14,8 @@ export class LegacyRequireAuthMiddleware implements NestMiddleware {
       req.auth.userId = process.env.LOCAL_USER_ID as string;
     } else {
       if (!req.auth.userId) {
-        console.error('Unauthorized request');
+        console.error('Unauthorized request', req);
+        console.error('Auth', req.auth);
         return next(new UnauthorizedException());
       }
     }
