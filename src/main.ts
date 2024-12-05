@@ -14,9 +14,9 @@ async function bootstrap() {
     AppModule,
     new ExpressAdapter(),
   );
-
+  //http://localhost:3000
   const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: 'https://f-flags-dashboard.vercel.app',
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
