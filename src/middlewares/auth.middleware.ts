@@ -10,6 +10,7 @@ import 'dotenv/config';
 @Injectable()
 export class LegacyRequireAuthMiddleware implements NestMiddleware {
   use(req: ExpressRequestWithAuth, res: Response, next: NextFunction) {
+    console.error('req.auth cookie', req.headers.cookie);
     if (process.env.APP_ENV === 'LOCAL') {
       req.auth.userId = process.env.LOCAL_USER_ID as string;
     } else {
