@@ -16,8 +16,7 @@ async function bootstrap() {
   );
   //http://localhost:3000
   const corsOptions = {
-    origin: 'http://localhost:3000',
-    credentials: true,
+    origin: ['https://fflagsbackend-x94aak4f.b4a.run', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
     exposedHeaders: ['set-cookie'],
@@ -35,7 +34,7 @@ async function bootstrap() {
     }),
   );
 
-  app.use(clerkMiddleware());
+  // app.use(clerkMiddleware());
 
   const config = new DocumentBuilder()
     .setTitle('FFlags')
@@ -45,6 +44,6 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, documentFactory);
 
-  await app.listen(3000);
+  await app.listen(4000);
 }
 bootstrap();

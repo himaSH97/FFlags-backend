@@ -1,25 +1,32 @@
+import { verifyToken } from '@clerk/express';
 import {
   Injectable,
   NestMiddleware,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { ExpressRequestWithAuth } from '@clerk/express';
 import 'dotenv/config';
+import { NextFunction, Response } from 'express';
+import { RequestWithAuth } from 'src/types';
 
 @Injectable()
 export class LegacyRequireAuthMiddleware implements NestMiddleware {
-  use(req: ExpressRequestWithAuth, res: Response, next: NextFunction) {
-    console.error('req.auth cookie', req.headers.cookie);
+  async use(req: RequestWithAuth, res: Response, next: NextFunction) {
     if (process.env.APP_ENV === 'LOCAL') {
-      req.auth.userId = process.env.LOCAL_USER_ID as string;
+      req.auth.sub = process.env.LOCAL_USER_ID as string;
     } else {
-      if (!req.auth.userId) {
-        console.error('Auth', req.auth);
+      const authToken = req.headers.authorization?.split(' ')[1] || '';
+      const verifiedInfo = await verifyToken(authToken, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+      });
+      req.auth = verifiedInfo;
+      console.log(
+        '🚀 ~ LegacyRequireAuthMiddleware ~ use ~ req.auth.sub:',
+        req.auth.sub,
+      );
+      if (!req.auth.sub) {
         return next(new UnauthorizedException());
       }
     }
-    console.log('req.auth.userId', req.auth.userId);
     next();
   }
 }

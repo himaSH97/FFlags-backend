@@ -15,14 +15,14 @@ const schema_1 = require("../db/schema");
 const permissions_1 = require("../permissions");
 let SystemRequiredMiddleware = class SystemRequiredMiddleware {
     async use(req, res, next) {
-        if (!req.auth.userId) {
+        if (!req.auth.sub) {
             return next(new common_1.UnauthorizedException());
         }
-        console.log('req.auth.userId', req.auth.userId);
+        console.log('req.auth.sub', req.auth.sub);
         const user = await db_1.db
             .select({ id: schema_1.users.id, clerkUserId: schema_1.users.clerkUserId })
             .from(schema_1.users)
-            .where((0, drizzle_orm_1.eq)(schema_1.users.clerkUserId, req.auth.userId))
+            .where((0, drizzle_orm_1.eq)(schema_1.users.clerkUserId, req.auth.sub))
             .execute();
         const systemUserId = user[0].id;
         const systemUserClerkId = user[0].clerkUserId;

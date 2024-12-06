@@ -19,14 +19,14 @@ import {
 @Injectable()
 export class SystemRequiredMiddleware implements NestMiddleware {
   async use(req: RequestWithAuthSystemInfo, res: Response, next: NextFunction) {
-    if (!req.auth.userId) {
+    if (!req.auth.sub) {
       return next(new UnauthorizedException());
     }
-    console.log('req.auth.userId', req.auth.userId);
+    console.log('req.auth.sub', req.auth.sub);
     const user = await db
       .select({ id: users.id, clerkUserId: users.clerkUserId })
       .from(users)
-      .where(eq(users.clerkUserId, req.auth.userId))
+      .where(eq(users.clerkUserId, req.auth.sub))
       .execute();
 
     const systemUserId = user[0].id;

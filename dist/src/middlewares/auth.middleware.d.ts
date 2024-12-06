@@ -1,7 +1,7 @@
 import { NestMiddleware } from '@nestjs/common';
-import { Response, NextFunction } from 'express';
-import { ExpressRequestWithAuth } from '@clerk/express';
 import 'dotenv/config';
+import { NextFunction, Response } from 'express';
+import { RequestWithAuth } from 'src/types';
 export declare class LegacyRequireAuthMiddleware implements NestMiddleware {
-    use(req: ExpressRequestWithAuth, res: Response, next: NextFunction): void;
+    use(req: RequestWithAuth, res: Response, next: NextFunction): Promise<void>;
 }

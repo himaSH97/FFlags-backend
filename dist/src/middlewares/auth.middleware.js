@@ -7,21 +7,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LegacyRequireAuthMiddleware = void 0;
+const express_1 = require("@clerk/express");
 const common_1 = require("@nestjs/common");
 require("dotenv/config");
 let LegacyRequireAuthMiddleware = class LegacyRequireAuthMiddleware {
-    use(req, res, next) {
-        console.error('req.auth cookie', req.headers.cookie);
+    async use(req, res, next) {
         if (process.env.APP_ENV === 'LOCAL') {
-            req.auth.userId = process.env.LOCAL_USER_ID;
+            req.auth.sub = process.env.LOCAL_USER_ID;
         }
         else {
-            if (!req.auth.userId) {
-                console.error('Auth', req.auth);
+            const authToken = req.headers.authorization?.split(' ')[1] || '';
+            const verifiedInfo = await (0, express_1.verifyToken)(authToken, {
+                secretKey: process.env.CLERK_SECRET_KEY,
+            });
+            req.auth = verifiedInfo;
+            console.log('🚀 ~ LegacyRequireAuthMiddleware ~ use ~ req.auth.sub:', req.auth.sub);
+            if (!req.auth.sub) {
                 return next(new common_1.UnauthorizedException());
             }
         }
-        console.log('req.auth.userId', req.auth.userId);
         next();
     }
 };
