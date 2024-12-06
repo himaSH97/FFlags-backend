@@ -7,10 +7,6 @@ import { UpdateInviteDto } from './dto/update-invite.dto';
 
 @Injectable()
 export class InviteService {
-  create(createInviteDto: CreateInviteDto) {
-    return 'This action adds a new invite';
-  }
-
   async findAll(userId: string) {
     const projectInvites = await db
       .select({
@@ -35,15 +31,16 @@ export class InviteService {
     return projectInvites;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} invite`;
-  }
-
-  update(id: number, updateInviteDto: UpdateInviteDto) {
-    return `This action updates a #${id} invite`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} invite`;
+  async inviteResponse(updateInviteDto: any) {
+    const action = updateInviteDto.action === 'accept' ? 'active' : 'declined';
+    await db
+      .update(usersOnProjects)
+      .set({
+        status: action,
+        joinedAt: new Date(),
+      })
+      .where(eq(usersOnProjects.id, updateInviteDto.inviteId))
+      .execute();
+    return { message: 'Invite accepted successfully' };
   }
 }

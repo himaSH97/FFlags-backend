@@ -15,6 +15,7 @@ import {
   TFFPermissions,
   TUserPermissions,
 } from 'src/permissions';
+import { clerkClient } from '@clerk/express';
 
 @Injectable()
 export class SystemRequiredMiddleware implements NestMiddleware {
@@ -27,6 +28,51 @@ export class SystemRequiredMiddleware implements NestMiddleware {
       .from(users)
       .where(eq(users.clerkUserId, req.auth.sub))
       .execute();
+
+    /**
+     * remove when webhook is implemented
+     *--------------------------------------------------------------------------------------------------------------
+     */
+
+    if (user.length === 0) {
+      const uppstreamUser = await clerkClient.users.getUser(req.auth.sub);
+      if (uppstreamUser) {
+        const email = uppstreamUser.emailAddresses[0].emailAddress;
+
+        const existingUnverifiedUser = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, email))
+          .execute();
+
+        if (existingUnverifiedUser.length > 0) {
+          const updatedUser = await db
+            .update(users)
+            .set({ clerkUserId: req.auth.sub })
+            .where(eq(users.email, email))
+            .returning({ id: users.id, clerkUserId: users.clerkUserId })
+            .execute();
+          user.push(updatedUser[0]);
+        } else {
+          const newUser = await db
+            .insert(users)
+            .values({
+              email: email,
+              clerkUserId: req.auth.sub,
+            })
+            .returning({
+              id: users.id,
+              clerkUserId: users.clerkUserId,
+            })
+            .execute();
+          user.push(newUser[0]);
+        }
+      }
+    }
+
+    /**
+     *--------------------------------------------------------------------------------------------------------------
+     */
 
     const systemUserId = user[0].id;
     const systemUserClerkId = user[0].clerkUserId;
