@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
 import { db } from 'src/db';
-import { usersOnProjects } from 'src/db/schema';
+import { projects, users, usersOnProjects } from 'src/db/schema';
 import { CreateInviteDto } from './dto/create-invite.dto';
 import { UpdateInviteDto } from './dto/update-invite.dto';
 
@@ -13,7 +13,15 @@ export class InviteService {
 
   async findAll(userId: string) {
     const projectInvites = await db
-      .select()
+      .select({
+        id: usersOnProjects.id,
+        projectId: projects.id,
+        projectName: projects.name,
+        invitedBy: users.email,
+        invitedById: users.id,
+        userId: usersOnProjects.userId,
+        role: usersOnProjects.role,
+      })
       .from(usersOnProjects)
       .where(
         and(
@@ -21,6 +29,8 @@ export class InviteService {
           eq(usersOnProjects.status, 'pending'),
         ),
       )
+      .leftJoin(projects, eq(usersOnProjects.projectId, projects.id))
+      .leftJoin(users, eq(usersOnProjects.invitedBy, users.id))
       .execute();
     return projectInvites;
   }

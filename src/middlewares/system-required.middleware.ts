@@ -6,7 +6,7 @@ import {
 import { NextFunction, Response } from 'express';
 
 import 'dotenv/config';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { db } from 'src/db';
 import { users, usersOnProjects } from 'src/db/schema';
 import { RequestWithAuthSystemInfo } from 'src/types';
@@ -22,7 +22,6 @@ export class SystemRequiredMiddleware implements NestMiddleware {
     if (!req.auth.sub) {
       return next(new UnauthorizedException());
     }
-    console.log('req.auth.sub', req.auth.sub);
     const user = await db
       .select({ id: users.id, clerkUserId: users.clerkUserId })
       .from(users)
@@ -42,7 +41,12 @@ export class SystemRequiredMiddleware implements NestMiddleware {
         role: usersOnProjects.role,
       })
       .from(usersOnProjects)
-      .where(eq(usersOnProjects.userId, systemUserId))
+      .where(
+        and(
+          eq(usersOnProjects.userId, systemUserId),
+          eq(usersOnProjects.status, 'active'),
+        ),
+      )
       .execute();
 
     const accessAllowed = projectList.map((project) => project.projectId);

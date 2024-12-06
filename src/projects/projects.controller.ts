@@ -44,8 +44,8 @@ export class ProjectsController {
    */
 
   @Get()
-  findAll(@Req() request: Request) {
-    return this.projectsService.findAll();
+  findAll(@Req() request: RequestWithAuthSystemInfo) {
+    return this.projectsService.findAll(request.systemInfo.projects);
   }
 
   /**

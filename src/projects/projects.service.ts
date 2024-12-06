@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, ilike, sql } from 'drizzle-orm';
+import { and, eq, ilike, sql, inArray } from 'drizzle-orm';
 import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 import { db } from 'src/db';
 import {
@@ -85,8 +85,12 @@ export class ProjectsService {
     return newRows;
   }
 
-  async findAll(): Promise<Doc<'projects'>[]> {
-    const projectsList = await db.select().from(projects).execute();
+  async findAll(projectList: string[]): Promise<Doc<'projects'>[]> {
+    const projectsList = await db
+      .select()
+      .from(projects)
+      .where(inArray(projects.id, projectList))
+      .execute();
     return projectsList;
   }
 
