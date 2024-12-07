@@ -34,7 +34,7 @@ async function bootstrap() {
     }),
   );
 
-  // app.use(clerkMiddleware());
+  app.use(clerkMiddleware());
 
   const config = new DocumentBuilder()
     .setTitle('FFlags')

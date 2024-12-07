@@ -7,8 +7,6 @@ type SystemInfo = {
   projects: string[];
 };
 
-export type RequestWithAuth = Request & { auth: JwtPayload };
-
-export type RequestWithAuthSystemInfo = RequestWithAuth & {
+export type RequestWithAuthSystemInfo = ExpressRequestWithAuth & {
   systemInfo: SystemInfo;
 };

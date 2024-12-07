@@ -20,13 +20,13 @@ import { clerkClient } from '@clerk/express';
 @Injectable()
 export class SystemRequiredMiddleware implements NestMiddleware {
   async use(req: RequestWithAuthSystemInfo, res: Response, next: NextFunction) {
-    if (!req.auth.sub) {
+    if (!req.auth.userId) {
       return next(new UnauthorizedException());
     }
     const user = await db
       .select({ id: users.id, clerkUserId: users.clerkUserId })
       .from(users)
-      .where(eq(users.clerkUserId, req.auth.sub))
+      .where(eq(users.clerkUserId, req.auth.userId))
       .execute();
 
     /**
@@ -35,7 +35,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
      */
 
     if (user.length === 0) {
-      const uppstreamUser = await clerkClient.users.getUser(req.auth.sub);
+      const uppstreamUser = await clerkClient.users.getUser(req.auth.userId);
       if (uppstreamUser) {
         const email = uppstreamUser.emailAddresses[0].emailAddress;
 
@@ -48,7 +48,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
         if (existingUnverifiedUser.length > 0) {
           const updatedUser = await db
             .update(users)
-            .set({ clerkUserId: req.auth.sub })
+            .set({ clerkUserId: req.auth.userId })
             .where(eq(users.email, email))
             .returning({ id: users.id, clerkUserId: users.clerkUserId })
             .execute();
@@ -58,7 +58,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
             .insert(users)
             .values({
               email: email,
-              clerkUserId: req.auth.sub,
+              clerkUserId: req.auth.userId,
             })
             .returning({
               id: users.id,
