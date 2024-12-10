@@ -107,11 +107,16 @@ export class ClientService {
       isValid,
     };
   }
-  async getFlagsInfo(projectId: string, body: GetFlagDto) {
+
+  async getFlagsInfo(projectId: string, data: { ec: string; s: string }) {
     const decryptedContent = await this.decryptContent(
       projectId,
-      body.data['ec'],
-      body.data['s'],
+      data.ec,
+      data.s,
+    );
+    console.log(
+      '🚀 ~ ClientService ~ getFlagsInfo ~ decryptedContent:',
+      decryptedContent,
     );
 
     const role = decryptedContent.values.userRole || DEAFULT_PROJECT_ROLE;
@@ -151,8 +156,8 @@ export class ClientService {
       )
       .groupBy(featureFlags.id)
       .execute();
-    console.timeEnd('fetchFlagInfo');
-    console.log(flagInfo[0]);
+    console.log('🚀 ~ ClientService ~ getFlagsInfo ~ flagInfo:', flagInfo);
+
     return flagInfo;
   }
 
@@ -204,5 +209,10 @@ export class ClientService {
       .execute();
 
     return flagInfo;
+  }
+
+  async test(projectId: string, ec: string, s: string) {
+    const decrypted = await this.decryptContent(projectId, ec, s);
+    console.log('🚀 ~ ClientService ~ test ~ decrypted:', decrypted);
   }
 }

@@ -43,4 +43,9 @@ export class InviteService {
       .execute();
     return { message: 'Invite accepted successfully' };
   }
+
+  async inviteCount(userId: string) {
+    const invites = await this.findAll(userId);
+    return { count: invites.length };
+  }
 }

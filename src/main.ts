@@ -18,6 +18,7 @@ async function bootstrap() {
   const corsOptions = {
     origin: ['https://f-flags-dashboard.vercel.app', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
     exposedHeaders: ['set-cookie'],
   };

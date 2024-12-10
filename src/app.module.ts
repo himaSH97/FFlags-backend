@@ -28,11 +28,11 @@ export class AppModule {
     consumer.apply(RequestLoggerMiddleware).forRoutes('*');
     consumer
       .apply(LegacyRequireAuthMiddleware)
-      .exclude({ path: 'client', method: RequestMethod.ALL })
+      .exclude({ path: 'client/flag-info', method: RequestMethod.ALL })
       .forRoutes('*');
     consumer
       .apply(SystemRequiredMiddleware)
-      .exclude({ path: 'client', method: RequestMethod.ALL })
+      .exclude({ path: 'client/flag-info', method: RequestMethod.ALL })
       .forRoutes('*');
   }
 }

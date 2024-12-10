@@ -36,7 +36,10 @@ export class ClientController {
     }
 
     const projectId = forge.util.decode64(projectIdBase64);
-    return this.clientService.getFlagsInfo(projectId, body);
+    return this.clientService.getFlagsInfo(projectId, {
+      ec: body.data.ec,
+      s: body.data.s,
+    });
   }
 
   @Post('flag')
@@ -50,5 +53,15 @@ export class ClientController {
     const projectId = forge.util.decode64(projectIdBase64);
 
     return this.clientService.getFlagInfo(projectId, body);
+  }
+
+  @Post('flag-info')
+  flagInfo(@Body() body: any, @Req() req: any) {
+    const projectIdBase64 = req.headers['x-fflags-project-key'];
+    const projectId = forge.util.decode64(projectIdBase64);
+
+    const decrypted = this.clientService.getFlagsInfo(projectId, body);
+
+    return decrypted;
   }
 }

@@ -1,17 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Req,
-} from '@nestjs/common';
-import { InviteService } from './invite.service';
-import { CreateInviteDto } from './dto/create-invite.dto';
-import { UpdateInviteDto } from './dto/update-invite.dto';
+import { Body, Controller, Get, Patch, Req } from '@nestjs/common';
 import { RequestWithAuthSystemInfo } from 'src/types';
+import { InviteService } from './invite.service';
 
 @Controller('invite')
 export class InviteController {
@@ -25,5 +14,10 @@ export class InviteController {
   @Patch('respond')
   inviteResponse(@Body() inviteResponseDto: any) {
     return this.inviteService.inviteResponse(inviteResponseDto);
+  }
+
+  @Get('count')
+  inviteCount(@Req() request: RequestWithAuthSystemInfo) {
+    return this.inviteService.inviteCount(request.systemInfo.userId);
   }
 }
