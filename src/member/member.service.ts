@@ -43,7 +43,7 @@ export class MemberService {
           projectId: projectId,
           status: 'pending',
           invitedBy: InvitedUserId,
-          role: 'viewer',
+          role: createMemberDto.role,
         })
         .returning()
         .execute();

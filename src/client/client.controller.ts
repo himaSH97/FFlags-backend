@@ -60,7 +60,7 @@ export class ClientController {
     const projectIdBase64 = req.headers['x-fflags-project-key'];
     const projectId = forge.util.decode64(projectIdBase64);
 
-    const decrypted = this.clientService.getFlagsInfo(projectId, body);
+    const decrypted = this.clientService.getFlagsInfoV2(projectId, body);
 
     return decrypted;
   }
