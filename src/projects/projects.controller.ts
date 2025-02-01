@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Req,
+  Put,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -71,8 +72,33 @@ export class ProjectsController {
    */
 
   @Get(':id/flags/:flagId')
-  getFlag(@Param('id') id: string, @Param('flagId') flagId: string) {
+  getFlag(
+    @Param('id') id: string,
+    @Param('flagId') flagId: string,
+    @Req() request: RequestWithAuthSystemInfo,
+  ) {
+    console.log(request.path);
     return this.projectsService.getFlagInfo(id, flagId);
+  }
+
+  @Patch(':id/flags/:flagId/settings')
+  updateFlagSettings(
+    @Param('id') id: string,
+    @Param('flagId') flagId: string,
+    @Req() request: RequestWithAuthSystemInfo,
+    @Body() updateFeatureFlagDto: any,
+  ) {
+    return this.projectsService.updateFlagSettings(
+      id,
+      flagId,
+      updateFeatureFlagDto,
+      request.systemInfo.userId,
+    );
+  }
+
+  @Get(':id/flags/:flagId/details')
+  getFlagDetails(@Param('id') id: string, @Param('flagId') flagId: string) {
+    return this.projectsService.getFlagBasicDetails(id, flagId);
   }
 
   /**

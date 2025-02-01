@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, ilike, sql, inArray } from 'drizzle-orm';
+import { and, eq, ilike, sql, inArray, asc, desc } from 'drizzle-orm';
 import { DEAFULT_PROJECT_ROLE } from 'src/constants';
 import { db } from 'src/db';
 import {
@@ -10,6 +10,7 @@ import {
   projectKeys,
   projectRoles,
   projects,
+  users,
   usersOnProjects,
 } from 'src/db/schema';
 import { Doc } from 'src/db/types';
@@ -18,6 +19,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
 import { createKeyFromName } from 'src/utils';
 import { audit } from 'rxjs';
+import { clerkClient, User } from '@clerk/express';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
@@ -129,6 +131,55 @@ export class ProjectsService {
       totalRecords,
       flagsList,
     };
+  }
+
+  async updateFlagSettings(
+    projectId: string,
+    flagId: string,
+    createFeatureFlagDto: any,
+    userId: string,
+  ) {
+    const { isAdvanced } = createFeatureFlagDto;
+    const updated = await db.transaction(async (tx) => {
+      const flagInfo = await tx
+        .select()
+        .from(featureFlags)
+        .where(
+          and(
+            eq(featureFlags.projectId, projectId),
+            eq(featureFlags.id, flagId),
+          ),
+        )
+        .execute();
+
+      const newFlag = await tx
+        .update(featureFlags)
+        .set({ isAdvanced: false })
+        .where(and(eq(featureFlags.id, flagId)));
+
+      // const auditRec = await tx
+      //   .insert(auditHistory)
+      //   .values({
+      //     changedBy: userId,
+      //     entityId: flagId,
+      //     entityType: 'feature_flags',
+      //     entityAction: 'update',
+      //     changedAt: new Date(),
+      //     changedFields: {
+      //       previous: {
+      //         isAdvanced: !flagInfo[0].isAdvanced,
+      //       },
+      //       current: {
+      //         isAdvanced,
+      //       },
+      //     },
+      //   })
+      //   .execute();
+
+      return newFlag;
+    });
+    console.log('🚀 ~ ProjectsService ~ updated', updated);
+    return updated;
   }
 
   async createFlags(
@@ -275,7 +326,7 @@ export class ProjectsService {
     /**
      * if not advanced return only deafult value
      */
-    if (!flagInfo[0].isAdvanced) {
+    if (!flagInfo[0]?.isAdvanced) {
       return {
         featureFlags: flagInfo[0],
         featureFlagValues: flagValues.filter(
@@ -289,6 +340,100 @@ export class ProjectsService {
     return {
       featureFlags: flagInfo[0],
       featureFlagValues: flagValues,
+    };
+  }
+
+  async getFlagBasicDetails(projectId: string, flagId: string) {
+    const flagInfo = await db
+      .select()
+      .from(featureFlags)
+      .where(
+        and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)),
+      )
+      .execute();
+
+    const flagValueListForFlagId = await db
+      .select({ id: featureFlagValues.id })
+      .from(featureFlagValues)
+      .where(eq(featureFlagValues.flagId, flagId))
+      .execute();
+
+    const flagValueIdList = flagValueListForFlagId.map((item) => item.id);
+    flagValueIdList.push(flagId);
+
+    const createdAtRecord = await db
+      .select()
+      .from(auditHistory)
+      .where(
+        and(
+          eq(auditHistory.entityId, flagId),
+          eq(auditHistory.entityType, 'feature_flags'),
+          eq(auditHistory.entityAction, 'create'),
+        ),
+      )
+      .limit(1);
+
+    const lastUpdatedRecord = await db
+      .select()
+      .from(auditHistory)
+      .where(inArray(auditHistory.entityId, flagValueIdList))
+      .orderBy(desc(auditHistory.changedAt))
+      .limit(1);
+
+    const userIds = [...createdAtRecord, ...lastUpdatedRecord].map(
+      (record) => record.changedBy,
+    );
+
+    const uniqueUserIds = [...new Set(userIds)];
+
+    const interactedUsers = await db
+      .select({ clerkId: users.clerkUserId, id: users.id, email: users.email })
+      .from(users)
+      .where(inArray(users.id, uniqueUserIds))
+      .execute();
+
+    const clerkIds = interactedUsers.map((user) => user.clerkId);
+
+    const clerkUsers = await clerkClient.users.getUserList({
+      userId: [...(clerkIds as string[])],
+    });
+
+    const userMap = clerkUsers.data.reduce((acc: any, user: User) => {
+      acc[user.id] = user;
+      return acc;
+    }, {});
+
+    const createdRecClerkid = interactedUsers.find(
+      (user) => user.id === createdAtRecord[0].changedBy,
+    )?.clerkId;
+
+    const lastUpdatedRecClerkid = interactedUsers.find(
+      (user) => user.id === lastUpdatedRecord[0].changedBy,
+    )?.clerkId;
+
+    const createdRec = {
+      ...createdAtRecord[0],
+      metadata: {
+        ...userMap[createdRecClerkid ?? ''],
+        email: interactedUsers.find(
+          (user) => user.clerkId === createdRecClerkid,
+        )?.email,
+      },
+    };
+    const lastUpdatedRec = {
+      ...lastUpdatedRecord[0],
+      metadata: {
+        ...userMap[lastUpdatedRecClerkid ?? ''],
+        email: interactedUsers.find(
+          (user) => user.clerkId === createdRecClerkid,
+        )?.email,
+      },
+    };
+
+    return {
+      flagInfo: flagInfo[0],
+      createdAtRecord: createdRec,
+      lastUpdatedRecord: lastUpdatedRec,
     };
   }
 
