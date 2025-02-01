@@ -31,7 +31,7 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   // Set global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', { exclude: ['/health'] });
 
   app.useGlobalPipes(
     new ValidationPipe({
