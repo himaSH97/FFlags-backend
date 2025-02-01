@@ -8,7 +8,7 @@ import {
 } from 'src/db/schema';
 import { eq, inArray, desc } from 'drizzle-orm';
 import { User, clerkClient } from '@clerk/express';
-import { getUserFields } from 'src/utils/clerk.utils';
+import ClerkUtils from 'src/utils/clerk.utils';
 
 @Injectable()
 export class AuditService {
@@ -62,10 +62,8 @@ export class AuditService {
       .map((result) => result.metadata.userId)
       .filter((userId): userId is string => typeof userId === 'string');
 
-    const clerkUsers = await clerkClient.users.getUserList({
-      userId: [...userIds],
-    });
-    const userMap = getUserFields(clerkUsers.data);
+    const clerkUsers = await ClerkUtils.getClerkUsers(userIds);
+    const userMap = ClerkUtils.getUserFields(clerkUsers);
 
     const updatedAuditHistoryList = auditHistoryList.map((result) => {
       const userId = result.metadata.userId;

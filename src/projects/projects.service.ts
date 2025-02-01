@@ -18,8 +18,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
 import { createKeyFromName } from 'src/utils';
-import { audit } from 'rxjs';
-import { clerkClient, User } from '@clerk/express';
+import ClerkUtils from 'src/utils/clerk.utils';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
@@ -88,25 +87,13 @@ export class ProjectsService {
   }
 
   async findAll(projectList: string[]): Promise<Doc<'projects'>[]> {
-    const projectsList = await db
-      .select()
-      .from(projects)
-      .where(inArray(projects.id, projectList))
-      .execute();
+    const projectsList = await db.select().from(projects).where(inArray(projects.id, projectList)).execute();
     return projectsList;
   }
 
-  async findFlags(
-    projectId: string,
-    search: string,
-    pageSize: number,
-    pageNumber: number,
-  ) {
+  async findFlags(projectId: string, search: string, pageSize: number, pageNumber: number) {
     const offset = (pageNumber - 1) * pageSize;
-    const conditions = and(
-      eq(featureFlags.projectId, projectId),
-      ilike(featureFlags.name, `%${search}%`),
-    );
+    const conditions = and(eq(featureFlags.projectId, projectId), ilike(featureFlags.name, `%${search}%`));
 
     const combinedQuery = db
       .select({
@@ -133,68 +120,54 @@ export class ProjectsService {
     };
   }
 
-  async updateFlagSettings(
-    projectId: string,
-    flagId: string,
-    createFeatureFlagDto: any,
-    userId: string,
-  ) {
+  async updateFlagSettings(projectId: string, flagId: string, createFeatureFlagDto: any, userId: string) {
     const { isAdvanced } = createFeatureFlagDto;
+    console.log('🚀 ~ ProjectsService ~ updateFlagSettings ~ isAdvanced:', isAdvanced);
     const updated = await db.transaction(async (tx) => {
       const flagInfo = await tx
         .select()
         .from(featureFlags)
-        .where(
-          and(
-            eq(featureFlags.projectId, projectId),
-            eq(featureFlags.id, flagId),
-          ),
-        )
+        .where(and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)))
         .execute();
-
       const newFlag = await tx
         .update(featureFlags)
-        .set({ isAdvanced: false })
-        .where(and(eq(featureFlags.id, flagId)));
+        .set({ isAdvanced: isAdvanced, updatedAt: sql`NOW()` })
+        .where(and(eq(featureFlags.id, flagId)))
+        .returning();
 
-      // const auditRec = await tx
-      //   .insert(auditHistory)
-      //   .values({
-      //     changedBy: userId,
-      //     entityId: flagId,
-      //     entityType: 'feature_flags',
-      //     entityAction: 'update',
-      //     changedAt: new Date(),
-      //     changedFields: {
-      //       previous: {
-      //         isAdvanced: !flagInfo[0].isAdvanced,
-      //       },
-      //       current: {
-      //         isAdvanced,
-      //       },
-      //     },
-      //   })
-      //   .execute();
+      const changedFields = {
+        previous: {
+          isAdvanced: flagInfo[0].isAdvanced,
+        },
+        current: {
+          isAdvanced: newFlag[0].isAdvanced,
+        },
+      };
+      const auditRec = await tx
+        .insert(auditHistory)
+        .values({
+          entityId: flagId,
+          entityType: 'feature_flags',
+          entityAction: 'update',
+          changedBy: userId,
+          changedAt: new Date(),
+          changedFields: changedFields,
+        })
+        .returning()
+        .execute();
 
       return newFlag;
     });
-    console.log('🚀 ~ ProjectsService ~ updated', updated);
+
+    console.log(updated);
     return updated;
   }
 
-  async createFlags(
-    projectId: string,
-    createFeatureFlagDto: any,
-    userId: string,
-  ) {
+  async createFlags(projectId: string, createFeatureFlagDto: any, userId: string) {
     const { name, description, isAdvanced } = createFeatureFlagDto;
 
     const flagKey = createKeyFromName(name);
-    const existigFlag = await db
-      .select()
-      .from(featureFlags)
-      .where(eq(featureFlags.flagKey, flagKey))
-      .execute();
+    const existigFlag = await db.select().from(featureFlags).where(eq(featureFlags.flagKey, flagKey)).execute();
 
     if (existigFlag.length > 0) {
       throw new Error('Flag with this name already exists');
@@ -221,16 +194,10 @@ export class ProjectsService {
       }));
 
       if (!isAdvanced) {
-        flagValues = flagValues.filter(
-          (role) => role.projectRole === DEAFULT_PROJECT_ROLE,
-        );
+        flagValues = flagValues.filter((role) => role.projectRole === DEAFULT_PROJECT_ROLE);
       }
 
-      const flagValue = await tx
-        .insert(featureFlagValues)
-        .values(flagValues)
-        .returning()
-        .execute();
+      const flagValue = await tx.insert(featureFlagValues).values(flagValues).returning().execute();
       /**
        *
        * Audit History for the flag and its values
@@ -300,9 +267,7 @@ export class ProjectsService {
     const flagInfo = await db
       .select()
       .from(featureFlags)
-      .where(
-        and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)),
-      )
+      .where(and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)))
       .execute();
 
     /**
@@ -321,6 +286,7 @@ export class ProjectsService {
       .from(featureFlagValues)
       .leftJoin(projectRoles, eq(featureFlagValues.roleId, projectRoles.id))
       .where(eq(featureFlagValues.flagId, flagId))
+      .orderBy(asc(featureFlagValues.createdAt))
       .execute();
 
     /**
@@ -329,9 +295,7 @@ export class ProjectsService {
     if (!flagInfo[0]?.isAdvanced) {
       return {
         featureFlags: flagInfo[0],
-        featureFlagValues: flagValues.filter(
-          (value) => value.projectRoleName === DEAFULT_PROJECT_ROLE,
-        ),
+        featureFlagValues: flagValues.filter((value) => value.projectRoleName === DEAFULT_PROJECT_ROLE),
       };
     }
     /**
@@ -347,9 +311,7 @@ export class ProjectsService {
     const flagInfo = await db
       .select()
       .from(featureFlags)
-      .where(
-        and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)),
-      )
+      .where(and(eq(featureFlags.projectId, projectId), eq(featureFlags.id, flagId)))
       .execute();
 
     const flagValueListForFlagId = await db
@@ -380,53 +342,38 @@ export class ProjectsService {
       .orderBy(desc(auditHistory.changedAt))
       .limit(1);
 
-    const userIds = [...createdAtRecord, ...lastUpdatedRecord].map(
-      (record) => record.changedBy,
-    );
+    const userIds = [...createdAtRecord, ...lastUpdatedRecord].map((record) => record.changedBy);
 
     const uniqueUserIds = [...new Set(userIds)];
 
     const interactedUsers = await db
-      .select({ clerkId: users.clerkUserId, id: users.id, email: users.email })
+      .select({ clerkUserId: users.clerkUserId, id: users.id, email: users.email })
       .from(users)
       .where(inArray(users.id, uniqueUserIds))
       .execute();
 
-    const clerkIds = interactedUsers.map((user) => user.clerkId);
+    const clerkIds = interactedUsers.map((user) => user.clerkUserId);
 
-    const clerkUsers = await clerkClient.users.getUserList({
-      userId: [...(clerkIds as string[])],
-    });
+    const clerkUsers = await ClerkUtils.getClerkUsers(clerkIds as string[]);
+    const userMap = ClerkUtils.getUserFields(clerkUsers);
 
-    const userMap = clerkUsers.data.reduce((acc: any, user: User) => {
-      acc[user.id] = user;
-      return acc;
-    }, {});
+    const createdRecClerkid = interactedUsers.find((user) => user.id === createdAtRecord[0].changedBy);
 
-    const createdRecClerkid = interactedUsers.find(
-      (user) => user.id === createdAtRecord[0].changedBy,
-    )?.clerkId;
-
-    const lastUpdatedRecClerkid = interactedUsers.find(
-      (user) => user.id === lastUpdatedRecord[0].changedBy,
-    )?.clerkId;
+    const lastUpdatedRecClerkid = interactedUsers.find((user) => user.id === lastUpdatedRecord[0].changedBy);
 
     const createdRec = {
       ...createdAtRecord[0],
       metadata: {
-        ...userMap[createdRecClerkid ?? ''],
-        email: interactedUsers.find(
-          (user) => user.clerkId === createdRecClerkid,
-        )?.email,
+        ...userMap[createdRecClerkid?.clerkUserId ?? ''],
+        email: createdRecClerkid?.email,
       },
     };
+
     const lastUpdatedRec = {
       ...lastUpdatedRecord[0],
       metadata: {
-        ...userMap[lastUpdatedRecClerkid ?? ''],
-        email: interactedUsers.find(
-          (user) => user.clerkId === createdRecClerkid,
-        )?.email,
+        ...userMap[lastUpdatedRecClerkid?.clerkUserId ?? ''],
+        email: lastUpdatedRecClerkid?.email,
       },
     };
 
@@ -437,10 +384,7 @@ export class ProjectsService {
     };
   }
 
-  async createProjectRole(
-    projectId: string,
-    createProjectRoleDto: CreateRoleDto,
-  ) {
+  async createProjectRole(projectId: string, createProjectRoleDto: CreateRoleDto) {
     const { name, description } = createProjectRoleDto;
 
     const newRows = await db.transaction(async (tx) => {
@@ -461,11 +405,7 @@ export class ProjectsService {
   }
 
   async removeProjectRole(roleId: string) {
-    const deletedRow = await db
-      .delete(projectRoles)
-      .where(eq(projectRoles.id, roleId))
-      .returning()
-      .execute();
+    const deletedRow = await db.delete(projectRoles).where(eq(projectRoles.id, roleId)).returning().execute();
 
     return deletedRow;
   }
@@ -480,15 +420,9 @@ export class ProjectsService {
       e: 0x10001,
     });
     const serverPublicKey = forge.pki.publicKeyToPem(senderKeypair.publicKey);
-    const serverPrivateKey = forge.pki.privateKeyToPem(
-      senderKeypair.privateKey,
-    );
-    const projectPublicKey = forge.pki.publicKeyToPem(
-      recipientKeypair.publicKey,
-    );
-    const projectPrivateKey = forge.pki.privateKeyToPem(
-      recipientKeypair.privateKey,
-    );
+    const serverPrivateKey = forge.pki.privateKeyToPem(senderKeypair.privateKey);
+    const projectPublicKey = forge.pki.publicKeyToPem(recipientKeypair.publicKey);
+    const projectPrivateKey = forge.pki.privateKeyToPem(recipientKeypair.privateKey);
     return {
       serverPublicKey,
       serverPrivateKey,
@@ -498,11 +432,7 @@ export class ProjectsService {
   }
 
   async getProjectKeys(projectId: string) {
-    const keys = await db
-      .select()
-      .from(projectKeys)
-      .where(eq(projectKeys.projectId, projectId))
-      .execute();
+    const keys = await db.select().from(projectKeys).where(eq(projectKeys.projectId, projectId)).execute();
 
     if (keys.length === 0) {
       throw new Error('No keys found for the given projectId');

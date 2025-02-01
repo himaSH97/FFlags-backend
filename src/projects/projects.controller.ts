@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  Req,
-  Put,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, Put } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
@@ -28,14 +17,8 @@ export class ProjectsController {
    */
 
   @Post()
-  create(
-    @Req() request: RequestWithAuthSystemInfo,
-    @Body() createProjectDto: CreateProjectDto,
-  ) {
-    return this.projectsService.create(
-      createProjectDto,
-      request.systemInfo.userId,
-    );
+  create(@Req() request: RequestWithAuthSystemInfo, @Body() createProjectDto: CreateProjectDto) {
+    return this.projectsService.create(createProjectDto, request.systemInfo.userId);
   }
 
   /**
@@ -72,11 +55,7 @@ export class ProjectsController {
    */
 
   @Get(':id/flags/:flagId')
-  getFlag(
-    @Param('id') id: string,
-    @Param('flagId') flagId: string,
-    @Req() request: RequestWithAuthSystemInfo,
-  ) {
+  getFlag(@Param('id') id: string, @Param('flagId') flagId: string, @Req() request: RequestWithAuthSystemInfo) {
     console.log(request.path);
     return this.projectsService.getFlagInfo(id, flagId);
   }
@@ -88,12 +67,7 @@ export class ProjectsController {
     @Req() request: RequestWithAuthSystemInfo,
     @Body() updateFeatureFlagDto: any,
   ) {
-    return this.projectsService.updateFlagSettings(
-      id,
-      flagId,
-      updateFeatureFlagDto,
-      request.systemInfo.userId,
-    );
+    return this.projectsService.updateFlagSettings(id, flagId, updateFeatureFlagDto, request.systemInfo.userId);
   }
 
   @Get(':id/flags/:flagId/details')
@@ -108,16 +82,8 @@ export class ProjectsController {
    */
 
   @Post(':id/flags')
-  createFlags(
-    @Param('id') id: string,
-    @Body() createFeatureFlagDto: any,
-    @Req() request: RequestWithAuthSystemInfo,
-  ) {
-    return this.projectsService.createFlags(
-      id,
-      createFeatureFlagDto,
-      request.systemInfo.userId,
-    );
+  createFlags(@Param('id') id: string, @Body() createFeatureFlagDto: any, @Req() request: RequestWithAuthSystemInfo) {
+    return this.projectsService.createFlags(id, createFeatureFlagDto, request.systemInfo.userId);
   }
 
   /**
@@ -138,10 +104,7 @@ export class ProjectsController {
    */
 
   @Post(':id/role')
-  createProjectRole(
-    @Param('id') id: string,
-    @Body() createProjectRoleDto: CreateRoleDto,
-  ) {
+  createProjectRole(@Param('id') id: string, @Body() createProjectRoleDto: CreateRoleDto) {
     return this.projectsService.createProjectRole(id, createProjectRoleDto);
   }
 
@@ -163,10 +126,7 @@ export class ProjectsController {
    */
 
   @Get(':id/keys')
-  getProjectKeys(
-    @Param('id') id: string,
-    @Req() request: RequestWithAuthSystemInfo,
-  ) {
+  getProjectKeys(@Param('id') id: string, @Req() request: RequestWithAuthSystemInfo) {
     return this.projectsService.getProjectKeys(id);
   }
 }
