@@ -12,6 +12,7 @@ export class LegacyRequireAuthMiddleware implements NestMiddleware {
       if (!req.auth.userId) {
         const clerkAuthObject = getAuth(req);
         if (!clerkAuthObject) {
+          console.error('Unauthorized');
           return next(new UnauthorizedException());
         }
         req.auth = clerkAuthObject;
