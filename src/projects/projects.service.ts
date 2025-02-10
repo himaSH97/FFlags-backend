@@ -17,6 +17,7 @@ import { Doc } from 'src/db/types';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
+import { BadRequestException } from '@nestjs/common';
 import { createKeyFromName } from 'src/utils';
 import ClerkUtils from 'src/utils/clerk.utils';
 
@@ -24,7 +25,8 @@ interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
   feature_flag_values: Doc<'featureFlagValues'>[];
 }
-
+const maxProjects = 2;
+const maxProjectRoles = 10;
 @Injectable()
 export class ProjectsService {
   async create(createProjectDto: CreateProjectDto, userId: string) {
@@ -38,6 +40,13 @@ export class ProjectsService {
     const { name, description } = createProjectDto;
 
     const newRows = await db.transaction(async (tx) => {
+      const projectCount = await db.$count(projects);
+
+      if (projectCount >= maxProjects) {
+        throw new BadRequestException(
+          `The total number of projects cannot exceed ${maxProjects}.`,
+        );
+      }
       const newProject = await tx
         .insert(projects)
         .values({
@@ -388,6 +397,13 @@ export class ProjectsService {
     const { name, description } = createProjectRoleDto;
 
     const newRows = await db.transaction(async (tx) => {
+      const projectRolesCount = await db.$count(projectRoles);
+      console.log(projectRolesCount);
+      if (projectRolesCount >= maxProjectRoles) {
+        throw new BadRequestException(
+          `The total number of projects cannot exceed ${maxProjectRoles}.`,
+        );
+      }
       const newProjectRole = await tx
         .insert(projectRoles)
         .values({
