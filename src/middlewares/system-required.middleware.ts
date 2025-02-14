@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NestMiddleware,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 
 import 'dotenv/config';
@@ -10,11 +6,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from 'src/db';
 import { users, usersOnProjects } from 'src/db/schema';
 import { RequestWithAuthSystemInfo } from 'src/types';
-import {
-  FFPermissions,
-  TFFPermissions,
-  TUserPermissions,
-} from 'src/permissions';
+import { FFPermissions, TFFPermissions, TUserPermissions } from 'src/permissions';
 import { clerkClient } from '@clerk/express';
 
 @Injectable()
@@ -87,21 +79,14 @@ export class SystemRequiredMiddleware implements NestMiddleware {
         role: usersOnProjects.role,
       })
       .from(usersOnProjects)
-      .where(
-        and(
-          eq(usersOnProjects.userId, systemUserId),
-          eq(usersOnProjects.status, 'active'),
-        ),
-      )
+      .where(and(eq(usersOnProjects.userId, systemUserId), eq(usersOnProjects.status, 'active')))
       .execute();
 
     const accessAllowed = projectList.map((project) => project.projectId);
     const systemPermissions: Record<string, TUserPermissions> = {};
 
     accessAllowed.forEach((projectId) => {
-      const project = projectList.find(
-        (project) => project.projectId === projectId,
-      );
+      const project = projectList.find((project) => project.projectId === projectId);
       if (!project) return;
       systemPermissions[project.projectId] = FFPermissions[project.role];
     });
@@ -110,7 +95,7 @@ export class SystemRequiredMiddleware implements NestMiddleware {
       projects: accessAllowed,
       userId: user[0].id,
       clerkUserId: user[0].clerkUserId,
-      systemPermissions,
+      permissions: systemPermissions,
     };
 
     req.systemInfo = systemRequired;

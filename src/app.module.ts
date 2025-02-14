@@ -10,6 +10,7 @@ import { SystemRequiredMiddleware } from './middlewares/system-required.middlewa
 import { MemberModule } from './member/member.module';
 import { ClientModule } from './client/client.module';
 import { InviteModule } from './invite/invite.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { InviteModule } from './invite/invite.module';
     MemberModule,
     ClientModule,
     InviteModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

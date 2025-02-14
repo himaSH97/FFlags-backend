@@ -19,6 +19,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import * as forge from 'node-forge';
 import { createKeyFromName } from 'src/utils';
 import ClerkUtils from 'src/utils/clerk.utils';
+import { TUserPermissions } from 'src/permissions';
 
 interface FlagInfo {
   feature_flags: Doc<'featureFlags'>;
