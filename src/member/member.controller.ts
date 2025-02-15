@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Query,
-  Req,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
 import { MemberService } from './member.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
@@ -24,11 +14,7 @@ export class MemberController {
     @Param('projectId') projectId: string,
     @Body() createMemberDto: CreateMemberDto,
   ) {
-    return this.memberService.create(
-      createMemberDto,
-      projectId,
-      request.systemInfo.userId,
-    );
+    return this.memberService.create(createMemberDto, projectId, request.systemInfo.userId);
   }
 
   @Get()
@@ -45,27 +31,21 @@ export class MemberController {
     @Query('role') role: string = '',
   ) {
     const rolesArray = role ? role.split('.') : [];
-    return this.memberService.getAllMembersPerProject(
-      projectId,
-      search,
-      rolesArray,
-      pageSize,
-      pageNumber,
-    );
+    return this.memberService.getAllMembersPerProject(projectId, search, rolesArray, pageSize, pageNumber);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.memberService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req: RequestWithAuthSystemInfo) {
+    return this.memberService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMemberDto: UpdateMemberDto) {
-    return this.memberService.update(+id, updateMemberDto);
+  update(@Param('id') id: string, @Body() updateMemberDto: any) {
+    return this.memberService.update(id, updateMemberDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.memberService.remove(+id);
+    return this.memberService.remove(id);
   }
 }

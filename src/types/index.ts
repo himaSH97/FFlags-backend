@@ -10,3 +10,11 @@ type SystemInfo = {
 export type RequestWithAuthSystemInfo = ExpressRequestWithAuth & {
   systemInfo: SystemInfo;
 };
+
+export type TFlagInfo = {
+  flagId: string;
+  flagName: string;
+  isAdvanced: boolean;
+  flagKey: string;
+  flagValues: { id: string; value: boolean; roleName: string }[];
+}[];

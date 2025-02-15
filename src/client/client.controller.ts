@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
 import * as forge from 'node-forge';
 import { ClientService, FlagInfoRequest } from './client.service';
 import { GetFlagDto } from './dto/get-flag.dto';
@@ -8,10 +8,7 @@ export class ClientController {
   constructor(private readonly clientService: ClientService) {}
 
   @Post('encrypt/:projectId')
-  async encryptContent(
-    @Param('projectId') projectId: string,
-    @Body() jsonData: any,
-  ) {
+  async encryptContent(@Param('projectId') projectId: string, @Body() jsonData: any) {
     return this.clientService.encryptContent(projectId, jsonData);
   }
 
@@ -21,11 +18,7 @@ export class ClientController {
     @Body('encryptedContent') encryptedContent: string,
     @Body('signature') signature: string,
   ) {
-    return this.clientService.decryptContent(
-      projectId,
-      encryptedContent,
-      signature,
-    );
+    return this.clientService.decryptContent(projectId, encryptedContent, signature);
   }
   @Post('flags')
   getFlagq(@Body() body: GetFlagDto, @Req() req: any) {
@@ -59,9 +52,21 @@ export class ClientController {
   flagInfo(@Body() body: any, @Req() req: any) {
     const projectIdBase64 = req.headers['x-fflags-project-key'];
     const projectId = forge.util.decode64(projectIdBase64);
-
     const decrypted = this.clientService.getFlagsInfoV2(projectId, body);
 
+    /**
+     *
+     * create a function to log the request data
+     *  for each flag value requested
+     *  log projectId, FlagId, flagVlueId, flagKey, metadata
+     *
+     */
+
     return decrypted;
+  }
+
+  @Get('metrics/:projectId')
+  getMetrics(@Param('projectId') projectId: string) {
+    return this.clientService.getClientProjectDetails(projectId);
   }
 }

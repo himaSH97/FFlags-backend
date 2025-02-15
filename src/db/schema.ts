@@ -15,15 +15,8 @@ import {
 // Define enums for role and status
 export const roleEnum = pgEnum('role', ['owner', 'admin', 'viewer']);
 export const statusEnum = pgEnum('status', ['active', 'pending', 'declined']);
-export const auditEntityTypeEnum = pgEnum('entity_type', [
-  'feature_flags',
-  'feature_flag_values',
-]);
-export const auditEntityActionEnum = pgEnum('entity_action', [
-  'create',
-  'update',
-  'delete',
-]);
+export const auditEntityTypeEnum = pgEnum('entity_type', ['feature_flags', 'feature_flag_values']);
+export const auditEntityActionEnum = pgEnum('entity_action', ['create', 'update', 'delete']);
 // Users table
 export const users = pgTable('users', {
   id: uuid('id')
@@ -32,9 +25,7 @@ export const users = pgTable('users', {
     .notNull(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   clerkUserId: varchar('clerk_user_id', { length: 100 }).unique(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
     .notNull()
@@ -52,9 +43,7 @@ export const projects = pgTable('projects', {
   createdBy: uuid('created_by')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
     .notNull()
@@ -76,9 +65,7 @@ export const projectKeys = pgTable('project_keys', {
     .references(() => projects.id, { onDelete: 'cascade' })
     .unique()
     .notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 // Project Roles table
@@ -92,9 +79,7 @@ export const projectRoles = pgTable('project_roles', {
     .notNull(),
   projectRole: varchar('project_role', { length: 50 }).notNull(),
   description: text('description'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
     .notNull()
@@ -119,14 +104,10 @@ export const usersOnProjects = pgTable(
     invitedBy: uuid('invited_by').references(() => users.id, {
       onDelete: 'set null',
     }),
-    joinedAt: timestamp('joined_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
     status: statusEnum('status').default('pending'),
   },
-  (table) => [
-    uniqueIndex('unique_project_user').on(table.projectId, table.userId),
-  ],
+  (table) => [uniqueIndex('unique_project_user').on(table.projectId, table.userId)],
 );
 
 // Feature Flags table
@@ -142,9 +123,7 @@ export const featureFlags = pgTable('feature_flags', {
   flagKey: varchar('flag_key', { length: 150 }).notNull().unique(),
   isAdvanced: boolean('is_advanced').default(false).notNull(),
   description: text('description'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .defaultNow()
     .notNull()
@@ -168,9 +147,7 @@ export const featureFlagValues = pgTable(
       .notNull(),
     value: boolean('value').default(false).notNull(),
     visibilityLevel: integer('visibility_level').default(100).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .defaultNow()
       .notNull()
@@ -191,7 +168,17 @@ export const auditHistory = pgTable('audit_history', {
   changedBy: uuid('changed_by')
     .references(() => users.id, { onDelete: 'restrict' })
     .notNull(),
-  changedAt: timestamp('changed_at', { withTimezone: true })
-    .defaultNow()
+  changedAt: timestamp('changed_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const clientLogs = pgTable('client_logs', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuid_generate_v4()`)
     .notNull(),
+  projectId: uuid('project_id').notNull(),
+  flagId: uuid('flag_id').notNull(),
+  flagValueId: uuid('flag_value_id').notNull(),
+  metadata: jsonb('metadata').notNull(),
+  requestedAt: timestamp('requested_at', { withTimezone: true }).defaultNow().notNull(),
 });

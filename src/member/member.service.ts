@@ -7,18 +7,11 @@ import { and, eq, ilike, sql } from 'drizzle-orm';
 
 @Injectable()
 export class MemberService {
-  async create(
-    createMemberDto: CreateMemberDto,
-    projectId: string,
-    InvitedUserId: string,
-  ) {
+  async create(createMemberDto: CreateMemberDto, projectId: string, InvitedUserId: string) {
     const { email } = createMemberDto;
 
     const newRows = await db.transaction(async (tx) => {
-      const existingUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email));
+      const existingUser = await db.select().from(users).where(eq(users.email, email));
 
       let userId;
 
@@ -57,16 +50,38 @@ export class MemberService {
     return `This action returns all member`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} member`;
+  async findOne(id: string) {
+    const userOnProject = await db
+      .select({
+        id: usersOnProjects.id,
+        joinedAt: usersOnProjects.joinedAt,
+        userId: usersOnProjects.userId,
+        projectId: usersOnProjects.projectId,
+        invitedBy: usersOnProjects.invitedBy,
+        role: usersOnProjects.role,
+        status: usersOnProjects.status,
+        email: users.email,
+      })
+      .from(usersOnProjects)
+      .innerJoin(users, eq(usersOnProjects.userId, users.id))
+      .where(eq(usersOnProjects.id, id))
+      .execute();
+
+    return userOnProject[0];
   }
 
-  update(id: number, updateMemberDto: UpdateMemberDto) {
-    return `This action updates a #${id} member`;
+  async update(id: string, updateMemberDto: UpdateMemberDto) {
+    return await db
+      .update(usersOnProjects)
+      .set({
+        role: updateMemberDto.role,
+      })
+      .where(eq(usersOnProjects.id, id))
+      .execute();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} member`;
+  async remove(id: string) {
+    return await db.delete(usersOnProjects).where(eq(usersOnProjects.id, id)).execute();
   }
 
   async getAllMembersPerProject(
@@ -77,10 +92,7 @@ export class MemberService {
     pageNumber: number,
   ) {
     const offset = (pageNumber - 1) * pageSize;
-    const conditionsArray = [
-      eq(usersOnProjects.projectId, projectId),
-      ilike(users.email, `%${search}%`),
-    ];
+    const conditionsArray = [eq(usersOnProjects.projectId, projectId), ilike(users.email, `%${search}%`)];
 
     const conditions = and(...conditionsArray);
 
@@ -104,14 +116,11 @@ export class MemberService {
       .offset(Number(offset))
       .execute();
 
-    const totalRecords =
-      membersList.length > 0 ? Number(membersList[0].total) : 0;
-    const memberList = membersList.map(
-      ({ total, platformStatus, ...rest }) => ({
-        ...rest,
-        platformStatus: platformStatus ? 'complete' : 'pending',
-      }),
-    );
+    const totalRecords = membersList.length > 0 ? Number(membersList[0].total) : 0;
+    const memberList = membersList.map(({ total, platformStatus, ...rest }) => ({
+      ...rest,
+      platformStatus: platformStatus ? 'complete' : 'pending',
+    }));
 
     return { totalRecords, memberList };
   }

@@ -123,7 +123,6 @@ export class ProjectsService {
 
   async updateFlagSettings(projectId: string, flagId: string, createFeatureFlagDto: any, userId: string) {
     const { isAdvanced } = createFeatureFlagDto;
-    console.log('🚀 ~ ProjectsService ~ updateFlagSettings ~ isAdvanced:', isAdvanced);
     const updated = await db.transaction(async (tx) => {
       const flagInfo = await tx
         .select()
@@ -160,7 +159,6 @@ export class ProjectsService {
       return newFlag;
     });
 
-    console.log(updated);
     return updated;
   }
 

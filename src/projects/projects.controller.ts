@@ -56,7 +56,6 @@ export class ProjectsController {
 
   @Get(':id/flags/:flagId')
   getFlag(@Param('id') id: string, @Param('flagId') flagId: string, @Req() request: RequestWithAuthSystemInfo) {
-    console.log(request.path);
     return this.projectsService.getFlagInfo(id, flagId);
   }
 

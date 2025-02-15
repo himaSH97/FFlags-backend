@@ -78,6 +78,13 @@
       "when": 1732945338242,
       "tag": "0010_adding flagKey",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1739593080822,
+      "tag": "0011_adding_client_logs",
+      "breakpoints": true
     }
   ]
 }
