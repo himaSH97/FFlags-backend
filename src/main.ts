@@ -9,7 +9,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const corsOptions = {
-    origin: ['https://f-flags-dashboard.vercel.app', 'https://flexcorps.site', 'http://localhost:3000'],
+    origin: ['https://f-flags-dashboard.vercel.app', 'https://flexcorps.site', 'http://localhost:3000','https://flexflags.nipunhimash.com'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-FFLAGS-Project-Key'],
